@@ -259,8 +259,7 @@ const encryptedBox = document.getElementById("encrypted");
 const keyBox = document.getElementById("key");
 const originalCount = document.getElementById("originalCount");
 const encryptedCount = document.getElementById("encryptedCount");
-const compressionValue = document.getElementById("compressionValue");
-const reductionValue = document.getElementById("reductionValue");
+
 
 // Standard Alphabet
 const normalAlphabet = 
@@ -419,7 +418,6 @@ function decrypt(text, key) {
     if (symbolToDict[sym]) {
       const phrase = symbolToDict[sym];
       out += phrase;
-      idx += phrase.length;
       continue;
     }
     
@@ -446,41 +444,13 @@ function decrypt(text, key) {
 
 let isUpdating = false;
 
-function updateStats() {
-  const origLen = originalBox.value.length;
-  const encLen = encryptedBox.value.length;
-  
-  originalCount.textContent = `${origLen} character${origLen !== 1 ? 's' : ''}`;
-  encryptedCount.textContent = `${encLen} character${encLen !== 1 ? 's' : ''}`;
-  
-  if (origLen > 0) {
-    const savings = Math.round((1 - (encLen / origLen)) * 100);
-    const reduction = origLen - encLen;
-    
-    if (savings < 0) {
-      compressionValue.textContent = `${Math.abs(savings)}%`;
-      compressionValue.className = 'stat-value negative';
-      reductionValue.textContent = `+${Math.abs(reduction)}`;
-      reductionValue.className = 'stat-value negative';
-    } else {
-      compressionValue.textContent = `${savings}%`;
-      compressionValue.className = 'stat-value positive';
-      reductionValue.textContent = `−${reduction}`;
-      reductionValue.className = 'stat-value positive';
-    }
-  } else {
-    compressionValue.textContent = '0%';
-    compressionValue.className = 'stat-value neutral';
-    reductionValue.textContent = '0';
-    reductionValue.className = 'stat-value neutral';
-  }
-}
+
 
 function updateFromOriginal() {
   if (isUpdating) return;
   isUpdating = true;
   encryptedBox.value = encrypt(originalBox.value, keyBox.value);
-  updateStats();
+
   isUpdating = false;
 }
 
@@ -488,7 +458,7 @@ function updateFromEncrypted() {
   if (isUpdating) return;
   isUpdating = true;
   originalBox.value = decrypt(encryptedBox.value, keyBox.value);
-  updateStats();
+
   isUpdating = false;
 }
 
