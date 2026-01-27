@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dictionary Encrypter (Stable)</title>
+<style>
+  * {margin:0; padding:0; box-sizing:border-box;}
+  :root{--bg:#0f172a;--surface:#1e293b;--border:#334155;--text:#f1f5f9;--text-dim:#94a3b8;--accent:#3b82f6;--accent-hover:#2563eb;--success:#10b981;}
+  body{font-family:-apple-system,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;padding:2rem;}
+  .container{max-width:1200px;width:100%;margin:0 auto;}
+  header{margin-bottom:3rem;text-align:center;}
+  h1{font-size:2.5rem;font-weight:700;background:linear-gradient(135deg,#3b82f6 0%,#8b5cf6 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+  .key-section{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:2rem;}
+  .key-label{display:block;font-size:0.875rem;font-weight:600;color:var(--text-dim);margin-bottom:0.75rem;text-transform:uppercase;}
+  input[type="text"]{width:100%;padding:0.875rem 1rem;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);}
+  .editor-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:2rem;}
+  .editor-panel{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+  .editor-header{padding:1rem 1.25rem;background:rgba(59,130,246,0.05);border-bottom:1px solid var(--border);display:flex;justify-content:space-between;}
+  .editor-title{font-size:0.875rem;font-weight:600;}
+  textarea{width:100%;height:400px;padding:1.25rem;font-family:monospace;background:var(--bg);border:none;color:var(--text);resize:vertical;}
+  .stats-bar{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.25rem;display:flex;justify-content:center;gap:2rem;flex-wrap:wrap;}
+  .stat{display:flex;flex-direction:column;align-items:center;}
+  .stat-label{font-size:0.75rem;color:var(--text-dim);}
+  .stat-value{font-size:1.5rem;font-weight:700;}
+  .info{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1rem;margin-top:2rem;font-size:0.875rem;color:var(--text-dim);}
+  .status{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1rem;margin-bottom:1rem;font-size:0.875rem;color:var(--text-dim);}
+  @media(max-width:768px){.editor-grid{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<div class="container">
+  <header><h1>Dictionary Encrypter (Stable)</h1></header>
+  <div class="status" id="status">Loading dictionary...</div>
+  <div class="key-section">
+    <label class="key-label">Encryption Key</label>
+    <input type="text" id="key" placeholder="Enter password...">
+  </div>
+  <div class="editor-grid">
+    <div class="editor-panel">
+      <div class="editor-header"><span class="editor-title">Original</span><span id="originalCount">0</span></div>
+      <textarea id="original" placeholder="Type your message here..." disabled></textarea>
+    </div>
+    <div class="editor-panel">
+      <div class="editor-header"><span class="editor-title">Encrypted</span><span id="encryptedCount">0</span></div>
+      <textarea id="encrypted" placeholder="Encrypted output..." disabled></textarea>
+    </div>
+  </div>
+  <div class="stats-bar">
+    <div class="stat"><span class="stat-label">Original Chars</span><span id="originalChars" class="stat-value">0</span></div>
+    <div class="stat"><span class="stat-label">Tokens</span><span id="tokensCount" class="stat-value">0</span></div>
+    <div class="stat"><span class="stat-label">Encrypted Chars</span><span id="encryptedSymbols" class="stat-value">0</span></div>
+    <div class="stat"><span class="stat-label">Compression</span><span id="compression" class="stat-value">0%</span></div>
+  </div>
+  <div class="info"><strong>Pipeline:</strong> text → dictionary tokens → varint bytes → 2 bytes per Unicode char → fully reversible</div>
+</div>
+
+<script>
+const originalBox = document.getElementById("original");
+const encryptedBox = document.getElementById("encrypted");
+const keyBox = document.getElementById("key");
+const statusDiv = document.getElementById("status");
+const originalCount = document.getElementById("originalCount");
+const encryptedCount = document.getElementById("encryptedCount");
+const originalChars = document.getElementById("originalChars");
+const tokensCount = document.getElementById("tokensCount");
+const encryptedSymbols = document.getElementById("encryptedSymbols");
+const compression = document.getElementById("compression");
+
+let dictionary = [], patternToIndex = {}, indexToPattern = {}, lastTokenCount = 0, isUpdating = false;
+
+// ---------- LOAD DICTIONARY ----------
+async function loadDictionary() {
+  try {
+    const res = await fetch("dictionary.json");
+    if(!res.ok) throw new Error("Failed to load dictionary");
+    dictionary = await res.json();
+    dictionary.sort((a,b)=>b.length-a.length);
+    buildMappings();
+    statusDiv.textContent = `Dictionary loaded: ${dictionary.length} patterns`;
+    originalBox.disabled=false;
+    encryptedBox.disabled=false;
+    keyBox.disabled=false;
+  } catch(err) { statusDiv.textContent = `Error: ${err.message}`; }
+}
+
+// ---------- MAPPINGS ----------
+function buildMappings(){
+  patternToIndex={};
+  indexToPattern={};
+  dictionary.forEach((p,i)=>{ patternToIndex[p]=i+1; indexToPattern[i+1]=p; });
+}
+
+// ---------- TOKENIZE ----------
+function tokenize(text){
+  const nums=[];
+  let i=0;
+  while(i<text.length){
+    let best=null;
+    for(const p of dictionary){ if(text.startsWith(p,i)){ best=p; break; } }
+    if(best){ nums.push(patternToIndex[best]); i+=best.length; }
+    else{
+      const cp = text.codePointAt(i);
+      nums.push(dictionary.length + 1 + cp);
+      i += cp > 0xFFFF ? 2 : 1; // surrogate pair handling
+    }
+  }
+  lastTokenCount = nums.length;
+  return nums;
+}
+
+// ---------- VARINT ENCODE / DECODE ----------
+function encodeVarint(num){
+  const bytes=[];
+  while(num>=128){ bytes.push((num&0x7F)|0x80); num=num>>>7; }
+  bytes.push(num&0x7F);
+  return bytes;
+}
+
+function decodeVarint(bytes,offset){
+  let val=0, shift=0, i=offset;
+  while(i<bytes.length){
+    const b=bytes[i];
+    val |= (b&0x7F)<<shift;
+    i++;
+    if((b&0x80)===0) break;
+    shift+=7;
+  }
+  return {value:val,nextOffset:i};
+}
+
+// ---------- BYTES ↔ 16-BIT UNICODE ----------
+// ---------- BYTES ↔ UNICODE (using Private Use Area) ----------
+function bytesToString(bytes){
+  const chars = [];
+  for(let i = 0; i < bytes.length; i += 2){
+    const b1 = bytes[i] || 0;
+    const b2 = bytes[i + 1] || 0;
+    const val = (b1 << 8) | b2;
+    // Map to Private Use Area: U+E000 to U+F8FF (6400 characters)
+    // For values beyond, use supplementary Private Use Area
+    if(val <= 0xF8FF - 0xE000) {
+      chars.push(String.fromCharCode(0xE000 + val));
+    } else {
+      // Use Supplementary Private Use Area-A: U+F0000 to U+FFFFD
+      chars.push(String.fromCodePoint(0xF0000 + val));
+    }
+  }
+  return chars.join('');
+}
+
+function stringToBytes(str){
+  const bytes = [];
+  for(const ch of str){
+    const cp = ch.codePointAt(0);
+    let val;
+    if(cp >= 0xE000 && cp <= 0xF8FF) {
+      val = cp - 0xE000;
+    } else if(cp >= 0xF0000) {
+      val = cp - 0xF0000;
+    } else {
+      val = 0; // fallback
+    }
+    bytes.push((val >>> 8) & 0xFF, val & 0xFF);
+  }
+  return bytes;
+}
+
+// ---------- ENCRYPT / DECRYPT ----------
+function encrypt(text){
+  const nums = tokenize(text);
+  const data=[];
+  for(const n of nums) data.push(...encodeVarint(n));
+  return bytesToString(data);
+}
+
+function decrypt(str){
+  const bytes = stringToBytes(str);
+  const nums=[];
+  let offset=0;
+  while(offset < bytes.length){
+    const r = decodeVarint(bytes, offset);
+    nums.push(r.value);
+    offset = r.nextOffset;
+  }
+  return nums.map(n => {
+    if(indexToPattern[n]) return indexToPattern[n];
+    const cp = n - dictionary.length - 1;
+    return String.fromCodePoint(cp);
+  }).join("");
+}
+
+// ---------- UI ----------
+function countCodePoints(str){ let c=0; for(const _ of str)c++; return c; }
+function updateStats(){
+  const oLen = originalBox.value.length;
+  const eLen = countCodePoints(encryptedBox.value);
+  originalCount.textContent=oLen;
+  encryptedCount.textContent=eLen;
+  originalChars.textContent=oLen;
+  tokensCount.textContent=lastTokenCount;
+  encryptedSymbols.textContent=eLen;
+  compression.textContent = oLen ? (((oLen-eLen)/oLen)*100).toFixed(1)+'%' : '0%';
+}
+
+function updateFromOriginal(){ if(isUpdating) return; isUpdating=true; try{ encryptedBox.value=encrypt(originalBox.value); updateStats(); } catch(err){ console.error(err); } isUpdating=false; }
+function updateFromEncrypted(){ if(isUpdating) return; isUpdating=true; try{ originalBox.value=decrypt(encryptedBox.value); updateStats(); } catch(err){ console.error(err); } isUpdating=false; }
+
+// ---------- INIT ----------
+originalBox.disabled=true;
+encryptedBox.disabled=true;
+keyBox.disabled=true;
+
+loadDictionary().then(()=>{
+  originalBox.addEventListener("input", updateFromOriginal);
+  encryptedBox.addEventListener("input", updateFromEncrypted);
+});
+</script>
+</body>
+</html>
