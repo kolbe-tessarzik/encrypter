@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dictionary Numeric Encrypter (Optimized)</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --bg: #0f172a; --surface: #1e293b; --border: #334155;
+    --text: #f1f5f9; --text-dim: #94a3b8; --accent: #3b82f6;
+    --accent-hover: #2563eb; --success: #10b981;
+  }
+  body {
+    font-family: -apple-system, sans-serif;
+    background: var(--bg); color: var(--text);
+    min-height: 100vh; display: flex; flex-direction: column; padding: 2rem;
+  }
+  .container { max-width: 1200px; width: 100%; margin: 0 auto; }
+  header { margin-bottom: 3rem; text-align: center; }
+  h1 {
+    font-size: 2.5rem; font-weight: 700;
+    background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .key-section {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem;
+  }
+  .key-label {
+    display: block; font-size: 0.875rem; font-weight: 600;
+    color: var(--text-dim); margin-bottom: 0.75rem; text-transform: uppercase;
+  }
+  input[type="text"] {
+    width: 100%; padding: 0.875rem 1rem; background: var(--bg);
+    border: 1px solid var(--border); border-radius: 8px; color: var(--text);
+  }
+  .editor-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem; }
+  .editor-panel { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+  .editor-header { padding: 1rem 1.25rem; background: rgba(59, 130, 246, 0.05); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; }
+  .editor-title { font-size: 0.875rem; font-weight: 600; }
+  textarea {
+    width: 100%; height: 400px; padding: 1.25rem; font-family: monospace;
+    background: var(--bg); border: none; color: var(--text); resize: vertical;
+  }
+  #encrypted { color: var(--success); word-break: break-all; }
+  .stats-bar {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+    padding: 1.25rem; display: flex; justify-content: center; gap: 2rem; flex-wrap: wrap;
+  }
+  .stat { display: flex; flex-direction: column; align-items: center; }
+  .stat-label { font-size: 0.75rem; color: var(--text-dim); }
+  .stat-value { font-size: 1.5rem; font-weight: 700; }
+  .info { 
+    background: var(--surface); border: 1px solid var(--border); 
+    border-radius: 12px; padding: 1rem; margin-top: 2rem;
+    font-size: 0.875rem; color: var(--text-dim);
+  }
+  .status {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 1rem; margin-bottom: 1rem;
+    font-size: 0.875rem; color: var(--text-dim);
+  }
+  @media (max-width: 768px) { .editor-grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <header><h1>Dictionary Numeric Encrypter (Optimized)</h1></header>
+
+  <div class="status" id="status">Loading dictionary...</div>
+
+  <div class="key-section">
+    <label class="key-label">Encryption Key</label>
+    <input type="text" id="key" placeholder="Enter password...">
+  </div>
+
+  <div class="editor-grid">
+    <div class="editor-panel">
+      <div class="editor-header">
+        <span class="editor-title">Original</span>
+        <span id="originalCount">0</span>
+      </div>
+      <textarea id="original" placeholder="Type your message here..."></textarea>
+    </div>
+
+    <div class="editor-panel">
+      <div class="editor-header">
+        <span class="editor-title">Encrypted (Unicode)</span>
+        <span id="encryptedCount">0</span>
+      </div>
+      <textarea id="encrypted" placeholder="Encrypted unicode will appear here..."></textarea>
+    </div>
+  </div>
+
+  <div class="stats-bar">
+    <div class="stat"><span class="stat-label">Original Chars</span><span id="originalChars" class="stat-value">0</span></div>
+    <div class="stat"><span class="stat-label">Tokens</span><span id="tokensCount" class="stat-value">0</span></div>
+    <div class="stat"><span class="stat-label">Encrypted Symbols</span><span id="encryptedSymbols" class="stat-value">0</span></div>
+    <div class="stat"><span class="stat-label">Compression</span><span id="compression" class="stat-value">0%</span></div>
+  </div>
+
+  <div class="info">
+    <strong>Optimized Pipeline:</strong><br>
+    text → dictionary tokens → varint encoding → length prefix + bytes → Unicode symbols (2 bytes per symbol)<br>
+    Uses valid Unicode range 0xE000-0xF8FF (private use area) for maximum compatibility
+  </div>
+</div>
+
+<script>
+const originalBox = document.getElementById("original");
+const encryptedBox = document.getElementById("encrypted");
+const keyBox = document.getElementById("key");
+const statusDiv = document.getElementById("status");
+const originalCount = document.getElementById("originalCount");
+const encryptedCount = document.getElementById("encryptedCount");
+const originalChars = document.getElementById("originalChars");
+const tokensCount = document.getElementById("tokensCount");
+const encryptedSymbols = document.getElementById("encryptedSymbols");
+const compression = document.getElementById("compression");
+
+let dictionaryPatterns = [];
+let patternToIndex = {};
+let indexToPattern = {};
+let isUpdating = false;
+let lastTokenCount = 0;
+
+// ---------- LOAD DICTIONARY ----------
+
+async function loadDictionary() {
+  try {
+    const res = await fetch("dictionary.json");
+    if (!res.ok) throw new Error("Failed to load dictionary");
+    dictionaryPatterns = await res.json();
+
+    // Longest first for greedy matching
+    dictionaryPatterns.sort((a, b) => b.length - a.length);
+
+    buildMappings();
+    statusDiv.textContent = `Dictionary loaded: ${dictionaryPatterns.length} patterns`;
+    console.log("Dictionary loaded:", dictionaryPatterns.length, "patterns");
+    
+    // Enable inputs
+    originalBox.disabled = false;
+    encryptedBox.disabled = false;
+    keyBox.disabled = false;
+    
+    return true;
+  } catch (err) {
+    statusDiv.textContent = `Error loading dictionary: ${err.message}`;
+    console.error("Dictionary load error:", err);
+    return false;
+  }
+}
+
+// ---------- KEY SHUFFLE ----------
+
+function makeRngFromKey(key) {
+  let hash = 2166136261;
+  for (const ch of (key || "default")) {
+    hash ^= ch.charCodeAt(0);
+    hash = Math.imul(hash, 16777619);
+  }
+  return () => {
+    hash ^= hash << 13; 
+    hash ^= hash >>> 17; 
+    hash ^= hash << 5;
+    return (hash >>> 0) / 4294967296;
+  };
+}
+
+function shuffleArray(array, key) {
+  const rng = makeRngFromKey(key);
+  const a = array.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function buildMappings(key = "") {
+  patternToIndex = {};
+  indexToPattern = {};
+
+  let ordered = dictionaryPatterns;
+  if (key) {
+    const indices = Array.from({length: dictionaryPatterns.length}, (_, i) => i);
+    const shuffled = shuffleArray(indices, key);
+    ordered = shuffled.map(i => dictionaryPatterns[i]);
+  }
+
+  ordered.forEach((p, i) => {
+    const n = i + 1;
+    patternToIndex[p] = n;
+    indexToPattern[n] = p;
+  });
+}
+
+// ---------- VARIABLE-WIDTH INTEGER ENCODING ----------
+
+function encodeVarint(num) {
+  const bytes = [];
+  while (num >= 128) {
+    bytes.push((num & 0x7F) | 0x80);
+    num = num >>> 7;
+  }
+  bytes.push(num & 0x7F);
+  return bytes;
+}
+
+function decodeVarint(bytes, offset) {
+  let num = 0;
+  let shift = 0;
+  let i = offset;
+  
+  while (i < bytes.length) {
+    const byte = bytes[i];
+    num |= (byte & 0x7F) << shift;
+    i++;
+    if ((byte & 0x80) === 0) break;
+    shift += 7;
+  }
+  
+  return { value: num, nextOffset: i };
+}
+
+// ---------- BYTES ↔ UNICODE (2 bytes per symbol) ----------
+// Use Private Use Area: E000-F8FF (6400 code points available)
+// Each symbol encodes 2 bytes (16 bits) = 65536 possible values
+// We'll use multiple ranges to cover all 65536 values
+
+const RANGES = [
+  { start: 0xE000, end: 0xF8FF, size: 0xF8FF - 0xE000 + 1 },  // 6400 in Private Use Area
+  { start: 0x4E00, end: 0x9FFF, size: 0x9FFF - 0x4E00 + 1 },  // 20992 in CJK Unified Ideographs
+];
+
+// Calculate total available code points
+let TOTAL_CODEPOINTS = 0;
+for (const range of RANGES) {
+  TOTAL_CODEPOINTS += range.size;
+}
+
+function bytesToUnicode(bytes) {
+  if (bytes.length === 0) return "";
+  
+  const chars = [];
+  for (let i = 0; i < bytes.length; i += 2) {
+    const b1 = bytes[i] || 0;
+    const b2 = bytes[i + 1] || 0;
+    
+    // Combine two bytes into 16-bit value
+    const value = (b1 << 8) | b2;
+    
+    // Map to Unicode code point
+    let remaining = value;
+    let codePoint = 0;
+    
+    for (const range of RANGES) {
+      if (remaining < range.size) {
+        codePoint = range.start + remaining;
+        break;
+      }
+      remaining -= range.size;
+    }
+    
+    // Fallback if value too large (shouldn't happen with 2 bytes)
+    if (codePoint === 0) {
+      codePoint = RANGES[0].start + (value % RANGES[0].size);
+    }
+    
+    chars.push(String.fromCharCode(codePoint));
+  }
+  return chars.join('');
+}
+
+function unicodeToBytes(str) {
+  if (!str) return [];
+  
+  const bytes = [];
+  
+  for (const ch of str) {
+    const codePoint = ch.charCodeAt(0);
+    
+    // Reverse map from code point to value
+    let value = 0;
+    let found = false;
+    
+    for (const range of RANGES) {
+      if (codePoint >= range.start && codePoint <= range.end) {
+        value += codePoint - range.start;
+        found = true;
+        break;
+      }
+      value += range.size;
+    }
+    
+    if (!found) continue; // Skip invalid characters
+    
+    // Split 16-bit value into 2 bytes
+    const b1 = (value >>> 8) & 0xFF;
+    const b2 = value & 0xFF;
+    
+    bytes.push(b1, b2);
+  }
+  
+  return bytes;
+}
+
+// ---------- ENCRYPT ----------
+
+function encrypt(text, key) {
+  if (!text) return "";
+  if (dictionaryPatterns.length === 0) {
+    console.error("Dictionary not loaded");
+    return "";
+  }
+
+  buildMappings(key);
+
+  const numbers = [];
+  let i = 0;
+
+  // Tokenize using greedy matching
+  while (i < text.length) {
+    let best = null;
+
+    // Find longest matching pattern
+    for (const p of dictionaryPatterns) {
+      if (text.startsWith(p, i)) {
+        best = p;
+        break; // patterns are sorted longest-first
+      }
+    }
+
+    if (best) {
+      numbers.push(patternToIndex[best]);
+      i += best.length;
+    } else {
+      // Fallback: encode as dictionary_length + 1 + char_code
+      const code = text.charCodeAt(i);
+      numbers.push(dictionaryPatterns.length + 1 + code);
+      i++;
+    }
+  }
+
+  lastTokenCount = numbers.length;
+
+  // Encode numbers using variable-width encoding
+  const dataBytes = [];
+  for (const num of numbers) {
+    dataBytes.push(...encodeVarint(num));
+  }
+
+  // Add length prefix (varint encoded)
+  const lengthBytes = encodeVarint(dataBytes.length);
+  const bytes = [...lengthBytes, ...dataBytes];
+
+  console.log(`Encrypted: ${numbers.length} tokens -> ${dataBytes.length} data bytes + ${lengthBytes.length} length bytes = ${bytes.length} total`);
+
+  // Convert bytes to Unicode
+  return bytesToUnicode(bytes);
+}
+
+// ---------- DECRYPT ----------
+
+function decrypt(str, key) {
+  if (!str) return "";
+  if (dictionaryPatterns.length === 0) {
+    console.error("Dictionary not loaded");
+    return "";
+  }
+
+  buildMappings(key);
+
+  // Unicode → bytes
+  const allBytes = unicodeToBytes(str);
+  
+  if (allBytes.length === 0) return "";
+
+  // First, read the length prefix
+  const lengthResult = decodeVarint(allBytes, 0);
+  const dataLength = lengthResult.value;
+  const dataStart = lengthResult.nextOffset;
+
+  console.log(`Length prefix: ${dataLength} bytes of data starting at offset ${dataStart}`);
+
+  // Extract only the data bytes
+  const bytes = allBytes.slice(dataStart, dataStart + dataLength);
+
+  // Decode variable-width integers
+  const numbers = [];
+  let offset = 0;
+  
+  while (offset < bytes.length) {
+    const result = decodeVarint(bytes, offset);
+    numbers.push(result.value);
+    offset = result.nextOffset;
+  }
+
+  console.log(`Decrypted: ${bytes.length} bytes -> ${numbers.length} tokens`);
+
+  // Convert numbers back to text
+  const result = [];
+
+  for (const n of numbers) {
+    if (indexToPattern[n]) {
+      result.push(indexToPattern[n]);
+    } else if (n > dictionaryPatterns.length) {
+      const code = n - dictionaryPatterns.length - 1;
+      if (code >= 0 && code <= 0x10FFFF) {
+        result.push(String.fromCharCode(code));
+      }
+    }
+  }
+
+  return result.join('');
+}
+
+// ---------- UI ----------
+
+function countCodePoints(str) {
+  let count = 0;
+  for (const _ of str) count++;
+  return count;
+}
+
+function updateStats() {
+  const oLen = originalBox.value.length;
+  const eSymbols = countCodePoints(encryptedBox.value);
+
+  originalCount.textContent = oLen;
+  encryptedCount.textContent = eSymbols;
+  originalChars.textContent = oLen;
+  tokensCount.textContent = lastTokenCount;
+  encryptedSymbols.textContent = eSymbols;
+  
+  const ratio = oLen > 0 ? ((oLen - eSymbols) / oLen * 100).toFixed(1) : 0;
+  compression.textContent = ratio + '%';
+}
+
+function updateFromOriginal() {
+  if (isUpdating) return;
+  if (dictionaryPatterns.length === 0) return;
+  
+  isUpdating = true;
+  try {
+    encryptedBox.value = encrypt(originalBox.value, keyBox.value);
+    updateStats();
+  } catch (err) {
+    console.error("Encryption error:", err);
+    statusDiv.textContent = `Encryption error: ${err.message}`;
+  }
+  isUpdating = false;
+}
+
+function updateFromEncrypted() {
+  if (isUpdating) return;
+  if (dictionaryPatterns.length === 0) return;
+  
+  isUpdating = true;
+  try {
+    originalBox.value = decrypt(encryptedBox.value, keyBox.value);
+    updateStats();
+  } catch (err) {
+    console.error("Decryption error:", err);
+    statusDiv.textContent = `Decryption error: ${err.message}`;
+  }
+  isUpdating = false;
+}
+
+// ---------- INIT ----------
+
+// Disable inputs until dictionary loads
+originalBox.disabled = true;
+encryptedBox.disabled = true;
+keyBox.disabled = true;
+
+loadDictionary().then(success => {
+  if (success) {
+    originalBox.addEventListener("input", updateFromOriginal);
+    encryptedBox.addEventListener("input", updateFromEncrypted);
+    keyBox.addEventListener("input", updateFromOriginal);
+  }
+});
+</script>
+
+</body>
+</html>
