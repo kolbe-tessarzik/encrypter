@@ -5,263 +5,77 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Encrypter</title>
 <style>
-  * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-  }
-
+  * { margin: 0; padding: 0; box-sizing: border-box; }
   :root {
-    --bg: #0f172a;
-    --surface: #1e293b;
-    --border: #334155;
-    --text: #f1f5f9;
-    --text-dim: #94a3b8;
-    --accent: #3b82f6;
-    --accent-hover: #2563eb;
-    --success: #10b981;
+    --bg: #0f172a; --surface: #1e293b; --border: #334155;
+    --text: #f1f5f9; --text-dim: #94a3b8; --accent: #3b82f6;
+    --accent-hover: #2563eb; --success: #10b981;
   }
-
   body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    padding: 2rem;
+    font-family: -apple-system, sans-serif;
+    background: var(--bg); color: var(--text);
+    min-height: 100vh; display: flex; flex-direction: column; padding: 2rem;
   }
-
-  .container {
-    max-width: 1200px;
-    width: 100%;
-    margin: 0 auto;
-  }
-
-  header {
-    margin-bottom: 3rem;
-    text-align: center;
-  }
-
+  .container { max-width: 1200px; width: 100%; margin: 0 auto; }
+  header { margin-bottom: 3rem; text-align: center; }
   h1 {
-    font-size: 2.5rem;
-    font-weight: 700;
+    font-size: 2.5rem; font-weight: 700;
     background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    margin-bottom: 0.5rem;
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
   }
-
-  .subtitle {
-    color: var(--text-dim);
-    font-size: 1rem;
-  }
-
   .key-section {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 1.5rem;
-    margin-bottom: 2rem;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem;
   }
-
   .key-label {
-    display: block;
-    font-size: 0.875rem;
-    font-weight: 600;
-    color: var(--text-dim);
-    margin-bottom: 0.75rem;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+    display: block; font-size: 0.875rem; font-weight: 600;
+    color: var(--text-dim); margin-bottom: 0.75rem; text-transform: uppercase;
   }
-
   input[type="text"] {
-    width: 100%;
-    padding: 0.875rem 1rem;
-    font-size: 1rem;
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    color: var(--text);
-    transition: all 0.2s ease;
+    width: 100%; padding: 0.875rem 1rem; background: var(--bg);
+    border: 1px solid var(--border); border-radius: 8px; color: var(--text);
   }
-
-  input[type="text"]:focus {
-    outline: none;
-    border-color: var(--accent);
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-  }
-
-  .editor-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1.5rem;
-    margin-bottom: 2rem;
-  }
-
-  .editor-panel {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-  }
-
-  .editor-header {
-    padding: 1rem 1.25rem;
-    background: rgba(59, 130, 246, 0.05);
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-
-  .editor-title {
-    font-size: 0.875rem;
-    font-weight: 600;
-    color: var(--text);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-  }
-
-  .editor-count {
-    font-size: 0.75rem;
-    color: var(--text-dim);
-    font-variant-numeric: tabular-nums;
-  }
-
+  .editor-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem; }
+  .editor-panel { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+  .editor-header { padding: 1rem 1.25rem; background: rgba(59, 130, 246, 0.05); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; }
+  .editor-title { font-size: 0.875rem; font-weight: 600; }
   textarea {
-    width: 100%;
-    height: 400px;
-    padding: 1.25rem;
-    font-size: 0.95rem;
-    font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
-    background: var(--bg);
-    border: none;
-    color: var(--text);
-    resize: vertical;
-    line-height: 1.6;
+    width: 100%; height: 400px; padding: 1.25rem; font-family: monospace;
+    background: var(--bg); border: none; color: var(--text); resize: vertical;
   }
-
-  textarea:focus {
-    outline: none;
-  }
-
-  textarea::placeholder {
-    color: var(--text-dim);
-    opacity: 0.5;
-  }
-
-  #encrypted {
-    color: var(--success);
-    background: rgba(16, 185, 129, 0.03);
-  }
-
+  #encrypted { color: var(--success); }
   .stats-bar {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 1.25rem 1.5rem;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 2rem;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+    padding: 1.25rem; display: flex; justify-content: center; gap: 2rem;
   }
-
-  .stat {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.25rem;
-  }
-
-  .stat-label {
-    font-size: 0.75rem;
-    color: var(--text-dim);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-  }
-
-  .stat-value {
-    font-size: 1.5rem;
-    font-weight: 700;
-    font-variant-numeric: tabular-nums;
-  }
-
-  .stat-value.positive {
-    color: var(--success);
-  }
-
-  .stat-value.negative {
-    color: #ef4444;
-  }
-
-  .stat-value.neutral {
-    color: var(--text-dim);
-  }
-
-  @media (max-width: 768px) {
-    body {
-      padding: 1rem;
-    }
-
-    h1 {
-      font-size: 2rem;
-    }
-
-    .editor-grid {
-      grid-template-columns: 1fr;
-    }
-
-    .stats-bar {
-      flex-direction: column;
-      gap: 1rem;
-      display: none;
-    }
-  }
+  .stat { display: flex; flex-direction: column; align-items: center; }
+  .stat-label { font-size: 0.75rem; color: var(--text-dim); }
+  .stat-value { font-size: 1.5rem; font-weight: 700; }
+  .positive { color: var(--success); }
+  @media (max-width: 768px) { .editor-grid { grid-template-columns: 1fr; } }
 </style>
 </head>
 <body>
 
 <div class="container">
-  <header>
-    <h1>Encrypter</h1>
-  </header>
-
+  <header><h1>Encrypter</h1></header>
   <div class="key-section">
-    <label class="key-label" for="key">Encryption Key (Optional)</label>
-    <input type="text" id="key" placeholder="Enter a password to encrypt the mapping...">
+    <label class="key-label">Encryption Key</label>
+    <input type="text" id="key" placeholder="Enter password...">
   </div>
-
   <div class="editor-grid">
     <div class="editor-panel">
-      <div class="editor-header">
-        <span class="editor-title">Original Text</span>
-        <span class="editor-count" id="originalCount">0 characters</span>
-      </div>
-      <textarea id="original" placeholder="Type or paste your text here..."></textarea>
+      <div class="editor-header"><span class="editor-title">Original</span><span id="originalCount">0</span></div>
+      <textarea id="original"></textarea>
     </div>
-
     <div class="editor-panel">
-      <div class="editor-header">
-        <span class="editor-title">Encrypted Output</span>
-        <span class="editor-count" id="encryptedCount">0 characters</span>
-      </div>
-      <textarea id="encrypted" placeholder="Symbols will appear here..."></textarea>
+      <div class="editor-header"><span class="editor-title">Encrypted</span><span id="encryptedCount">0</span></div>
+      <textarea id="encrypted"></textarea>
     </div>
   </div>
-
   <div class="stats-bar">
-    <div class="stat">
-      <span class="stat-label">Compression</span>
-      <span class="stat-value neutral" id="compressionValue">0%</span>
-    </div>
-    <div class="stat">
-      <span class="stat-label">Size Reduction</span>
-      <span class="stat-value neutral" id="reductionValue">0 chars</span>
-    </div>
+    <div class="stat"><span class="stat-label">Compression</span><span id="compressionValue" class="stat-value">0%</span></div>
+    <div class="stat"><span class="stat-label">Reduction</span><span id="reductionValue" class="stat-value">0</span></div>
   </div>
 </div>
 
@@ -274,1176 +88,183 @@ const encryptedCount = document.getElementById("encryptedCount");
 const compressionValue = document.getElementById("compressionValue");
 const reductionValue = document.getElementById("reductionValue");
 
-// Enhanced Alphabet with more symbols for encoding
-const normalAlphabet = 
-  "abcdefghijklmnopqrstuvwxyz" +
-  "ABCDEFGHIJKLMNOPQRSTUVWXYZ" +
-  "0123456789" +
-  " .,!?:;'\"-_=+()[]{}<>/@#$%&*\\|^~`\n";
-
-// Enhanced Dictionary with more patterns for better compression
-const baseWords = [
-  // Original content
-  "the", "and", "ing", "ion", "tio", "ent", "ati", "for", "her", "ter", 
-  "hat", "tha", "ere", "ate", "his", "con", "res", "ver", "all", "ons",
-  "nce", "men", "ith", "ted", "ers", "pro", "thi", "wit", "are", "ess",
-  "not", "ive", "was", "ect", "rea", "com", "eve", "per", "int", "est",
-  "sta", "cti", "ica", "ist", "ear", "ain", "one", "our", "iti", "rat", "res",
-  
-  "of the", "in the", "to the", "for the", "on the", "at the", "from the", "with the", "by the", "and the",
-  "that the", "is the", "as the", "was the", "are the", "it is", "there is", "there are", "this is",
-  "it was", "I am", "you are", "we are", "they are", "he is", "she is", "I have", "you have", "we have",
-  "they have", "I will", "you will", "we will", "they will", "do not", "does not", "did not", "is not",
-  "are not", "was not", "were not", "have not", "has not", "had not", "will not", "would not", "should not",
-  "could not", "cannot", "can not", "I would", "you would", "he would", "she would", "we would", "they would",
-  
-  "a ", "b ", "c ", "d ", "e ", "f ", "g ", "h ", "i ", "j ", "k ", "l ", "m ",
-  "n ", "o ", "p ", "q ", "r ", "s ", "t ", "u ", "v ", "w ", "x ", "y ", "z ",
-  "A ", "B ", "C ", "D ", "E ", "F ", "G ", "H ", "I ", "J ", "K ", "L ", "M ",
-  "N ", "O ", "P ", "Q ", "R ", "S ", "T ", "U ", "V ", "W ", "X ", "Y ", "Z ",
-  
-  ". ", ", ", "; ", ": ", "! ", "? ", " - ", " (", ") ", "[ ", "] ", "{ ", "} ", 
-  " '", "' ", " \"", "\" ", " `", "` ", " /", "\\ ", " |", " @", " #", " $", " %",
-  
-  "ed ", "ing ", "ly ", "ment", "able", "tion", "ness", "less", "ful", "ive",
-  "al ", "ic ", "ous", "ive", "ent", "ant", "ance", "ence", "ity", "ship",
-  
-  "un", "re", "dis", "pre", "post", "anti", "sub", "over", "under", "super",
-  
-  "the ", "and ", "for ", "you", "with", "this", "that", "have", "from", "they",
-
-  // Massive expansion
-  // Common words
-  "about", "after", "again", "against", "all", "also", "an", "any", "as", "at",
-  "be", "because", "been", "before", "being", "both", "but", "by", "can", "come",
-  "could", "day", "did", "do", "down", "each", "even", "first", "found", "get",
-  "go", "good", "great", "had", "has", "have", "he", "help", "her", "here",
-  "him", "his", "how", "I", "if", "in", "into", "is", "it", "its",
-  "just", "know", "like", "look", "made", "make", "man", "many", "may", "me",
-  "more", "most", "my", "new", "no", "not", "now", "of", "on", "one",
-  "only", "or", "other", "our", "out", "over", "own", "people", "said", "see",
-  "she", "should", "so", "some", "such", "take", "than", "that", "the", "their",
-  "them", "then", "there", "these", "they", "thing", "think", "this", "those", "time",
-  "to", "two", "up", "us", "use", "very", "was", "way", "we", "well",
-  "were", "what", "when", "where", "which", "who", "will", "with", "word", "work",
-  "would", "write", "year", "you", "your",
-
-  // Common word endings/patterns
-  "able", "ably", "al", "ally", "ance", "ancy", "ant", "ate", "ation", "ative",
-  "cy", "dom", "ed", "ee", "een", "ence", "ency", "ent", "er", "ern",
-  "ese", "esque", "ess", "est", "et", "etic", "ette", "ful", "fully", "fy",
-  "hood", "ial", "ian", "ible", "ibly", "ic", "ical", "ically", "ies", "ify",
-  "ile", "ily", "ine", "ing", "ion", "ious", "ish", "ism", "ist", "ite",
-  "ity", "ive", "ively", "ivity", "ize", "less", "let", "like", "ling", "ly",
-  "ment", "most", "ness", "oid", "ology", "or", "ory", "ous", "path", "phile",
-  "phone", "proof", "scope", "ship", "sion", "some", "th", "tion", "tional", "ture",
-  "ty", "ual", "ular", "ule", "ure", "ward", "wards", "ways", "wise", "y",
-
-  // Common prefixes
-  "a", "ab", "ad", "af", "ag", "an", "ap", "ar", "as", "at",
-  "be", "bi", "co", "com", "con", "contra", "counter", "de", "di", "dis",
-  "en", "em", "epi", "eu", "ex", "extra", "fore", "hemi", "hyper", "il",
-  "im", "in", "infra", "inter", "intra", "ir", "macro", "mal", "maxi", "meta",
-  "micro", "mid", "mini", "mis", "mono", "multi", "neo", "non", "omni", "out",
-  "over", "pan", "para", "peri", "photo", "poly", "post", "pre", "pro", "proto",
-  "pseudo", "re", "retro", "self", "semi", "sub", "super", "supra", "sur", "tele",
-  "trans", "tri", "ultra", "un", "under", "uni", "up", "vice", "with",
-
-  // Common phrases
-  "a lot", "a number of", "according to", "after all", "ahead of", "all but", "all of a sudden",
-  "all over", "all right", "along with", "and so on", "as well", "as well as", "as soon as",
-  "as if", "as long as", "as much as", "as far as", "at all", "at least", "at once",
-  "at most", "at the same time", "back and forth", "back to back", "be able to", "because of",
-  "better off", "by the way", "call for", "call off", "call on", "carry on", "carry out",
-  "catch up", "check in", "check out", "come across", "come up with", "cut down", "cut off",
-  "deal with", "do over", "each other", "end up", "even though", "ever since", "fall apart",
-  "far from", "figure out", "fill in", "find out", "for example", "for good", "for sure",
-  "get along", "get away", "get back", "get by", "get in", "get off", "get on", "get out",
-  "get over", "get rid of", "get together", "get up", "give up", "go ahead", "go back",
-  "go on", "go out", "go over", "go through", "grow up", "had better", "hand in",
-  "hang on", "have to", "hold on", "in addition", "in advance", "in case", "in charge of",
-  "in fact", "in favor of", "in front of", "in general", "in order to", "in other words",
-  "in place of", "in spite of", "in time", "instead of", "just about", "keep on",
-  "kind of", "look after", "look for", "look forward to", "look out", "look up",
-  "make sure", "make up", "more or less", "no matter", "of course", "on account of",
-  "on average", "on board", "on purpose", "on the other hand", "once again", "once in a while",
-  "one another", "out of", "over and over", "pick up", "point out", "put off", "put on",
-  "put up with", "rather than", "right away", "run into", "run out of", "set up",
-  "show up", "so far", "sooner or later", "sort of", "stand for", "take after",
-  "take care of", "take off", "take on", "take over", "take place", "take up",
-  "thank you", "that is", "the same as", "think over", "throw away", "to and fro",
-  "try out", "turn down", "turn into", "turn off", "turn on", "turn out", "turn over",
-  "up to", "use up", "wait on", "what about", "whether or not", "with regard to",
-  "work out", "would rather",
-
-  // Common contractions
-  "I'm", "you're", "he's", "she's", "it's", "we're", "they're", "I've", "you've",
-  "we've", "they've", "I'll", "you'll", "he'll", "she'll", "it'll", "we'll", "they'll",
-  "I'd", "you'd", "he'd", "she'd", "it'd", "we'd", "they'd", "isn't", "aren't",
-  "wasn't", "weren't", "haven't", "hasn't", "hadn't", "won't", "wouldn't", "don't",
-  "doesn't", "didn't", "can't", "couldn't", "shouldn't", "mightn't", "mustn't",
-
-  // Common technical terms
-  "computer", "software", "hardware", "network", "system", "data", "information",
-  "application", "program", "code", "algorithm", "function", "variable", "object",
-  "class", "method", "interface", "database", "server", "client", "web", "internet",
-  "website", "page", "file", "document", "image", "video", "audio", "text", "number",
-  "password", "security", "encryption", "database", "query", "search", "result",
-  "error", "message", "email", "phone", "mobile", "device", "screen", "display",
-  "keyboard", "mouse", "memory", "storage", "processor", "speed", "time", "date",
-
-  // Common numbers and symbols
-  "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
-  "10", "100", "1000", "first", "second", "third", "fourth", "fifth", "sixth",
-  "seventh", "eighth", "ninth", "tenth", "half", "quarter", "double", "triple",
-  "single", "multiple", "few", "many", "several", "most", "all", "none",
-
-  // Time-related
-  "time", "day", "week", "month", "year", "hour", "minute", "second", "morning",
-  "afternoon", "evening", "night", "today", "tomorrow", "yesterday", "now", "later",
-  "soon", "early", "late", "past", "present", "future", "clock", "calendar",
-  "schedule", "duration", "period", "moment", "while", "age", "era", "century",
-
-  // Common adjectives
-  "good", "bad", "big", "small", "large", "little", "great", "important", "different",
-  "same", "new", "old", "young", "high", "low", "long", "short", "early", "late",
-  "right", "wrong", "true", "false", "real", "false", "positive", "negative",
-  "happy", "sad", "beautiful", "ugly", "rich", "poor", "hot", "cold", "warm", "cool",
-  "dark", "light", "heavy", "light", "hard", "soft", "easy", "difficult",
-  "simple", "complex", "clean", "dirty", "full", "empty", "open", "closed",
-
-  // Common verbs
-  "be", "have", "do", "say", "get", "make", "go", "know", "take", "see",
-  "come", "think", "look", "want", "give", "use", "find", "tell", "ask", "work",
-  "seem", "feel", "try", "leave", "call", "put", "set", "run", "move", "live",
-  "believe", "bring", "happen", "write", "provide", "sit", "stand", "lose", "pay",
-  "meet", "include", "continue", "change", "begin", "start", "stop", "create",
-  "develop", "understand", "learn", "play", "run", "walk", "talk", "speak", "read",
-
-  // add
-"about the", "above all", "according to", "across from", "after that", "after the", "against the",
-"all about", "all at once", "all over the", "along the", "among the", "around the", "as a result",
-"as a whole", "as far as", "as for", "as if", "as long as", "as well as", "at a time", "at first",
-"at least", "at once", "at the same time", "back to", "based on", "because of", "before the",
-"behind the", "between the", "by far", "by means of", "by the way", "close to", "due to",
-"even if", "even though", "except for", "far from", "for a while", "for example", "for the most part",
-"for the sake of", "from a", "from the", "in a way", "in addition", "in case of", "in front of",
-"in general", "in order to", "in place of", "in spite of", "in terms of", "in the end",
-"in the middle", "in the process", "in the sense", "in the world", "in time", "in view of",
-"inside of", "instead of", "on a", "on account of", "on behalf of", "on top of", "on the other hand",
-"once again", "one by one", "out of the", "over the", "part of", "regardless of", "right away",
-"such as", "thanks to", "up to", "with a", "with respect to", "with the help of", "without a",
-"without the", "according", "actually", "additionally", "afterward", "alongside", "altogether",
-"apparently", "approximately", "around", "as well", "attractive", "basically", "carefully",
-"certainly", "clearly", "completely", "constantly", "currently", "definitely", "directly",
-"efficiently", "eventually", "exactly", "especially", "essentially", "extremely", "finally",
-"frequently", "generally", "gradually", "honestly", "however", "immediately", "in fact",
-"instead", "literally", "mainly", "naturally", "obviously", "particularly", "possibly",
-"previously", "primarily", "probably", "quickly", "recently", "relatively", "similarly",
-"simply", "specifically", "suddenly", "therefore", "totally", "usually", "virtually",
-"within", "without", "according to the", "as a matter of fact", "as soon as possible",
-"at the same time as", "by and large", "for all intents and purposes", "for the most part",
-"in accordance with", "in case of emergency", "in charge of the", "in connection with",
-"in favor of the", "in keeping with", "in line with", "in place of the", "in relation to",
-"in regard to", "in response to", "in terms of the", "in the event of", "on behalf of the",
-"on the basis of", "on the part of", "with a view to", "with regard to the", "with respect to the",
-
-// More tech / modern terms
-"AI", "artificial intelligence", "machine learning", "deep learning", "neural network", 
-"data science", "big data", "cloud computing", "blockchain", "IoT", "internet of things",
-"frontend", "backend", "full stack", "API", "SDK", "GUI", "UX", "UI", "responsive design",
-"framework", "library", "repository", "version control", "GitHub", "GitLab", "pull request",
-"commit", "merge", "branch", "docker", "kubernetes", "virtual machine", "container",
-"serverless", "database schema", "query language", "SQL", "NoSQL", "JSON", "REST API", 
-"GraphQL", "endpoint", "HTTP request", "HTTPS", "encryption key", "hashing", "tokenization",
-"password reset", "two-factor authentication", "biometrics", "fingerprint", "facial recognition",
-
-// More number / measurement expressions
-"a few", "a little", "a lot of", "all of them", "any of them", "both of them", "each of them",
-"half of them", "one of them", "some of them", "most of them", "none of them", "dozen of",
-"pair of", "couple of", "thousands of", "millions of", "billions of", "hundreds of",
-"first of all", "second of all", "third of all",
-
-// More common verbs + phrases
-"ask for", "break down", "bring about", "bring up", "call back", "carry on", "check out",
-"come along", "come by", "come down", "come in", "come off", "come out", "come through",
-"cut back", "cut in", "cut out", "do away with", "drop by", "drop off", "figure out", "fill out",
-"find out", "follow up", "get across", "get ahead", "get along with", "get around", "get at",
-"get away with", "get back at", "get behind", "get in touch", "get on with", "get over with",
-"get rid", "get together with", "give in", "give out", "give up on", "go along with",
-"go ahead with", "go back on", "go in for", "go out with", "go through with", "hand in",
-"hold back", "hold on to", "keep on with", "look after", "look around", "look back on",
-"look down on", "look forward to", "look into", "look out for", "look over", "look up to",
-"make out", "make up for", "pick out", "pick up on", "put across", "put away", "put down",
-"put off", "put on", "put out", "put up with", "run across", "run into", "run out of",
-"set aside", "set out", "set up with", "take after", "take apart", "take back", "take down",
-"take in", "take off on", "take on with", "take out", "take over from", "take up with",
-"turn around", "turn away", "turn down", "turn in", "turn off", "turn on", "turn out to be",
-"turn over", "wait for", "watch out for", "work out", "write down", "write up",
-
-// 2-letter combos
-"aa", "ab", "ac", "ad", "ae", "af", "ag", "ah", "ai", "aj", "ak", "al", "am", "an", "ao", "ap", "aq", "ar", "as", "at", "au", "av", "aw", "ax", "ay", "az",
-"ba", "bb", "bc", "bd", "be", "bf", "bg", "bh", "bi", "bj", "bk", "bl", "bm", "bn", "bo", "bp", "bq", "br", "bs", "bt", "bu", "bv", "bw", "bx", "by", "bz",
-"ca", "cb", "cc", "cd", "ce", "cf", "cg", "ch", "ci", "cj", "ck", "cl", "cm", "cn", "co", "cp", "cq", "cr", "cs", "ct", "cu", "cv", "cw", "cx", "cy", "cz",
-"da", "db", "dc", "dd", "de", "df", "dg", "dh", "di", "dj", "dk", "dl", "dm", "dn", "do", "dp", "dq", "dr", "ds", "dt", "du", "dv", "dw", "dx", "dy", "dz",
-"ea", "eb", "ec", "ed", "ee", "ef", "eg", "eh", "ei", "ej", "ek", "el", "em", "en", "eo", "ep", "eq", "er", "es", "et", "eu", "ev", "ew", "ex", "ey", "ez",
-"fa", "fb", "fc", "fd", "fe", "ff", "fg", "fh", "fi", "fj", "fk", "fl", "fm", "fn", "fo", "fp", "fq", "fr", "fs", "ft", "fu", "fv", "fw", "fx", "fy", "fz",
-"ga", "gb", "gc", "gd", "ge", "gf", "gg", "gh", "gi", "gj", "gk", "gl", "gm", "gn", "go", "gp", "gq", "gr", "gs", "gt", "gu", "gv", "gw", "gx", "gy", "gz",
-"ha", "hb", "hc", "hd", "he", "hf", "hg", "hh", "hi", "hj", "hk", "hl", "hm", "hn", "ho", "hp", "hq", "hr", "hs", "ht", "hu", "hv", "hw", "hx", "hy", "hz",
-"ia", "ib", "ic", "id", "ie", "if", "ig", "ih", "ii", "ij", "ik", "il", "im", "in", "io", "ip", "iq", "ir", "is", "it", "iu", "iv", "iw", "ix", "iy", "iz",
-"ja", "jb", "jc", "jd", "je", "jf", "jg", "jh", "ji", "jj", "jk", "jl", "jm", "jn", "jo", "jp", "jq", "jr", "js", "jt", "ju", "jv", "jw", "jx", "jy", "jz",
-"ka", "kb", "kc", "kd", "ke", "kf", "kg", "kh", "ki", "kj", "kk", "kl", "km", "kn", "ko", "kp", "kq", "kr", "ks", "kt", "ku", "kv", "kw", "kx", "ky", "kz",
-"la", "lb", "lc", "ld", "le", "lf", "lg", "lh", "li", "lj", "lk", "ll", "lm", "ln", "lo", "lp", "lq", "lr", "ls", "lt", "lu", "lv", "lw", "lx", "ly", "lz",
-"ma", "mb", "mc", "md", "me", "mf", "mg", "mh", "mi", "mj", "mk", "ml", "mm", "mn", "mo", "mp", "mq", "mr", "ms", "mt", "mu", "mv", "mw", "mx", "my", "mz",
-"na", "nb", "nc", "nd", "ne", "nf", "ng", "nh", "ni", "nj", "nk", "nl", "nm", "nn", "no", "np", "nq", "nr", "ns", "nt", "nu", "nv", "nw", "nx", "ny", "nz",
-"oa", "ob", "oc", "od", "oe", "of", "og", "oh", "oi", "oj", "ok", "ol", "om", "on", "oo", "op", "oq", "or", "os", "ot", "ou", "ov", "ow", "ox", "oy", "oz",
-"pa", "pb", "pc", "pd", "pe", "pf", "pg", "ph", "pi", "pj", "pk", "pl", "pm", "pn", "po", "pp", "pq", "pr", "ps", "pt", "pu", "pv", "pw", "px", "py", "pz",
-"qa", "qb", "qc", "qd", "qe", "qf", "qg", "qh", "qi", "qj", "qk", "ql", "qm", "qn", "qo", "qp", "qq", "qr", "qs", "qt", "qu", "qv", "qw", "qx", "qy", "qz",
-"ra", "rb", "rc", "rd", "re", "rf", "rg", "rh", "ri", "rj", "rk", "rl", "rm", "rn", "ro", "rp", "rq", "rr", "rs", "rt", "ru", "rv", "rw", "rx", "ry", "rz",
-"sa", "sb", "sc", "sd", "se", "sf", "sg", "sh", "si", "sj", "sk", "sl", "sm", "sn", "so", "sp", "sq", "sr", "ss", "st", "su", "sv", "sw", "sx", "sy", "sz",
-"ta", "tb", "tc", "td", "te", "tf", "tg", "th", "ti", "tj", "tk", "tl", "tm", "tn", "to", "tp", "tq", "tr", "ts", "tt", "tu", "tv", "tw", "tx", "ty", "tz",
-"ua", "ub", "uc", "ud", "ue", "uf", "ug", "uh", "ui", "uj", "uk", "ul", "um", "un", "uo", "up", "uq", "ur", "us", "ut", "uu", "uv", "uw", "ux", "uy", "uz",
-"va", "vb", "vc", "vd", "ve", "vf", "vg", "vh", "vi", "vj", "vk", "vl", "vm", "vn", "vo", "vp", "vq", "vr", "vs", "vt", "vu", "vv", "vw", "vx", "vy", "vz",
-"wa", "wb", "wc", "wd", "we", "wf", "wg", "wh", "wi", "wj", "wk", "wl", "wm", "wn", "wo", "wp", "wq", "wr", "ws", "wt", "wu", "wv", "ww", "wx", "wy", "wz",
-"xa", "xb", "xc", "xd", "xe", "xf", "xg", "xh", "xi", "xj", "xk", "xl", "xm", "xn", "xo", "xp", "xq", "xr", "xs", "xt", "xu", "xv", "xw", "xx", "xy", "xz",
-"ya", "yb", "yc", "yd", "ye", "yf", "yg", "yh", "yi", "yj", "yk", "yl", "ym", "yn", "yo", "yp", "yq", "yr", "ys", "yt", "yu", "yv", "yw", "yx", "yy", "yz",
-"za", "zb", "zc", "zd", "ze", "zf", "zg", "zh", "zi", "zj", "zk", "zl", "zm", "zn", "zo", "zp", "zq", "zr", "zs", "zt", "zu", "zv", "zw", "zx", "zy", "zz",
-
-// common number combos
-"00", "01", "02", "03", "04", "05", "06", "07", "08", "09",
-"10", "11", "12", "13", "14", "15", "16", "17", "18", "19",
-"20", "21", "22", "23", "24", "25", "26", "27", "28", "29",
-"30", "31", "32", "33", "34", "35", "36", "37", "38", "39",
-"40", "41", "42", "43", "44", "45", "46", "47", "48", "49",
-"50", "51", "52", "53", "54", "55", "56", "57", "58", "59",
-"60", "61", "62", "63", "64", "65", "66", "67", "68", "69",
-"70", "71", "72", "73", "74", "75", "76", "77", "78", "79",
-"80", "81", "82", "83", "84", "85", "86", "87", "88", "89",
-"90", "91", "92", "93", "94", "95", "96", "97", "98", "99",
-
-// common letter-symbol combos
-"a!", "b!", "c!", "d!", "e!", "f!", "g!", "h!", "i!", "j!", "k!", "l!", "m!", "n!", "o!", "p!", "q!", "r!", "s!", "t!", "u!", "v!", "w!", "x!", "y!", "z!",
-"a?", "b?", "c?", "d?", "e?", "f?", "g?", "h?", "i?", "j?", "k?", "l?", "m?", "n?", "o?", "p?", "q?", "r?", "s?", "t?", "u?", "v?", "w?", "x?", "y?", "z?",
-"a.", "b.", "c.", "d.", "e.", "f.", "g.", "h.", "i.", "j.", "k.", "l.", "m.", "n.", "o.", "p.", "q.", "r.", "s.", "t.", "u.", "v.", "w.", "x.", "y.", "z.",
-
-// 3-letter combos
-
-// Common English trigrams
-"the", "and", "ing", "ion", "tio", "for", "tha", "ent", "ati", "her", "ter",
-"ere", "ate", "his", "con", "res", "ver", "all", "ons", "nce", "men", "ith",
-"ted", "ers", "pro", "thi", "wit", "are", "ess", "not", "ive", "was", "ect",
-"rea", "com", "eve", "per", "int", "est", "sta", "cti", "ica", "ist", "ear",
-"ain", "one", "our", "iti", "rat", "res",
-
-// Common functional trigrams
-"and", "for", "the", "you", "but", "are", "all", "not", "any", "can", "had",
-"has", "her", "his", "out", "she", "who", "how", "was", "one", "our", "too",
-"see", "may", "get", "now", "day", "new", "try", "let", "put", "run", "set",
-
-// Common contractions
-"n't", "'re", "'ve", "'ll", "'d", "'s", "'m", "'t",
-
-// Common prefixes
-"pre", "pro", "sub", "dis", "un", "re", "con", "com", "non", "mis", "out", "over", "under",
-
-// Common suffixes
-"ing", "ion", "est", "ant", "ent", "ful", "less", "ous", "ive", "ity", "ment",
-
-// Letter-letter-letter combos (full a-z)
-"aaa", "aab", "aac", "aad", "aae", "aaf", "aag", "aah", "aai", "aaj", "aak", "aal", "aam", "aan", "aao", "aap", "aaq", "aar", "aas", "aat", "aau", "aav", "aaw", "aax", "aay", "aaz",
-"aba", "abb", "abc", "abd", "abe", "abf", "abg", "abh", "abi", "abj", "abk", "abl", "abm", "abn", "abo", "abp", "abq", "abr", "abs", "abt", "abu", "abv", "abw", "abx", "aby", "abz",
-"aca", "acb", "acc", "acd", "ace", "acf", "acg", "ach", "aci", "acj", "ack", "acl", "acm", "acn", "aco", "acp", "acq", "acr", "acs", "act", "acu", "acv", "acw", "acx", "acy", "acz",
-"ada", "adb", "adc", "add", "ade", "adf", "adg", "adh", "adi", "adj", "adk", "adl", "adm", "adn", "ado", "adp", "adq", "adr", "ads", "adt", "adu", "adv", "adw", "adx", "ady", "adz",
-// ... same pattern for b**, c**, d** ... up to z**
-
-// Number-inclusive trigrams
-"a1a", "b2b", "c3c", "d4d", "e5e", "f6f", "g7g", "h8h", "i9i", "j0j",
-"1a1", "2b2", "3c3", "4d4", "5e5", "6f6", "7g7", "8h8", "9i9", "0j0",
-
-// Letter-symbol-letter combos
-"a!a", "b@b", "c#c", "d$d", "e%e", "f^f", "g&g", "h*h", "i(i", "j)j",
-"k-k", "l_l", "m+m", "n=n", "o{o", "p}p", "q[q", "r]r", "s|s", "t\\t",
-"u/u", "v:v", "w;w", "x,x", "y.y", "z?z",
-
-// Common word-start trigrams
-"the", "tha", "thi", "for", "fro", "and", "are", "con", "com", "int", "pro", "pre", "sub", "dis", "ver", "was", "not", "one", "all",
-
-// Common word-end trigrams
-"ing", "ion", "ent", "ant", "ter", "her", "ers", "est", "ity", "ful", "ous", "ive", "ess",
-// More 3-letter combos
-
-// Common trigrams from English words
-"the", "and", "ing", "ion", "tio", "for", "tha", "ent", "ati", "her", "ter",
-"ere", "ate", "his", "con", "res", "ver", "all", "ons", "nce", "men", "ith",
-"ted", "ers", "pro", "thi", "wit", "are", "ess", "not", "ive", "was", "ect",
-"rea", "com", "eve", "per", "int", "est", "sta", "cti", "ica", "ist", "ear",
-"ain", "one", "our", "iti", "rat", "res", "ous", "ful", "ive", "ant", "ent",
-
-// Common prefixes + roots
-"pre", "pro", "sub", "dis", "unr", "re-", "con", "com", "non", "mis", "out", "over",
-"under", "sup", "anti", "auto", "tri", "uni", "neo", "post", "mid", "inter", "intra",
-
-// Common suffixes
-"ing", "ion", "ent", "ant", "ter", "est", "ity", "ous", "ful", "ess", "ive", "acy",
-"ize", "ise", "ate", "ify", "ble", "ial", "ish", "ism", "ist", "ity", "ure",
-
-// Common consonant clusters
-"str", "spr", "scr", "shr", "thr", "spl", "chr", "spl", "squ", "shr", "phs", "ght",
-"nch", "tch", "sch", "ckl", "mpl", "mpl", "ndl", "ngs", "nts",
-
-// Common vowel clusters
-"air", "ear", "eir", "ier", "our", "our", "out", "ous", "eau", "iou", "eio", "ieu",
-"igh", "igh", "aer", "aia", "eia", "eio", "iou", "oui", "oie",
-
-// Functional / grammatical trigrams
-"the", "and", "for", "but", "are", "not", "you", "all", "any", "can", "had",
-"has", "her", "his", "was", "one", "our", "too", "see", "may", "get", "now",
-"let", "put", "run", "set", "try", "ask", "use", "pay", "buy", "cut", "hit",
-"won", "use", "end", "add", "fix", "run", "win",
-
-// Pronoun/auxiliary trigrams
-"you", "the", "our", "all", "any", "was", "has", "had", "its", "her", "his", "not",
-"are", "can", "did", "for", "but", "get", "see", "may", "let", "put", "run", "try",
-
-// Common word endings for verbs/nouns/adjectives
-"ing", "ion", "ent", "ant", "ter", "ous", "ful", "ive", "est", "acy", "ate", "ify",
-"ize", "ish", "ism", "ist", "ity", "ure", "ely", "ally", "ely", "ous",
-
-// Technical/modern trigrams
-"app", "api", "gui", "uxi", "uix", "cli", "srv", "srv", "dbs", "sql", "nos", "nos",
-"json", "xml", "htt", "https", "tcp", "udp", "ip-", "url", "cmd", "dev", "ops",
-"sys", "srv", "mem", "cpu", "gpu", "ram", "ssd", "hdd", "vm-", "vms", "net",
-
-// Number-letter combos
-"a1a", "b2b", "c3c", "d4d", "e5e", "f6f", "g7g", "h8h", "i9i", "j0j",
-"1a1", "2b2", "3c3", "4d4", "5e5", "6f6", "7g7", "8h8", "9i9", "0j0",
-
-// Letter-symbol combos
-"a!a", "b@b", "c#c", "d$d", "e%e", "f^f", "g&g", "h*h", "i(i", "j)j",
-"k-k", "l_l", "m+m", "n=n", "o{o", "p}p", "q[q", "r]r", "s|s", "t\\t",
-"u/u", "v:v", "w;w", "x,x", "y.y", "z?z",
-
-// Random useful trigrams
-"nth", "tch", "ght", "sch", "str", "spl", "shr", "scr", "spr", "thr",
-"ing", "ion", "est", "ent", "ant", "ous", "ful", "ive", "all", "our", "any",
-"the", "and", "for", "are", "but", "not", "you", "all", "any", "can", "had",
-"has", "her", "his", "was", "one", "our", "too", "see", "may", "get", "now",
-"let", "put", "run", "set", "try", "ask", "use", "pay", "buy", "cut", "hit",
-"won", "end", "add", "fix", "act", "aid", "aim", "air", "arm", "art", "ask",
-"bar", "bat", "bed", "bee", "bet", "box", "boy", "bun", "bus", "cab", "cat",
-"cap", "car", "cow", "cry", "cut", "dig", "dog", "dry", "ear", "eat", "egg",
-"far", "fat", "fit", "fun", "fur", "gas", "gun", "gym", "hat", "hen", "hot",
-"ink", "jam", "jar", "jet", "key", "kid", "leg", "let", "man", "map", "mat",
-"may", "men", "mix", "net", "new", "not", "now", "oak", "odd", "off", "oil",
-"old", "one", "our", "out", "own", "pad", "pan", "pat", "pen", "pet", "pie",
-"pig", "pop", "pot", "put", "ran", "rat", "red", "run", "sad", "sat", "say",
-"see", "she", "sit", "sky", "son", "sun", "tap", "tax", "tea", "ten", "the",
-"tie", "tip", "top", "toy", "try", "use", "van", "war", "was", "way", "wet",
-"win", "won", "yes", "yet", "you", "zip", "zoo",
-"able", "acid", "also", "area", "army", "away", "baby", "back", "ball",
-"band", "bank", "base", "bath", "bear", "beat", "been", "beer", "bell",
-"belt", "best", "bill", "bird", "blow", "blue", "boat", "body", "bomb",
-"bond", "bone", "book", "boom", "born", "boss", "both", "bowl", "buck",
-"burn", "bush", "busy", "call", "calm", "came", "camp", "card", "care",
-"case", "cash", "cast", "cell", "chat", "chip", "city", "club", "coal",
-"coat", "code", "cold", "come", "cook", "cool", "copy", "cord", "core",
-"cost", "crew", "crop", "dark", "data", "date", "dawn", "days", "dead",
-"deal", "dear", "deck", "deep", "desk", "dial", "diet", "disk", "does",
-"done", "door", "dose", "down", "draw", "drop", "drug", "dual", "duck",
-"dust", "duty", "each", "earn", "ease", "east", "easy", "edge", "else",
-"even", "ever", "evil", "exit", "face", "fact", "fail", "fair", "fall",
-"farm", "fast", "fate", "fear", "feed", "feel", "feet", "fell", "felt",
-"file", "fill", "film", "find", "fine", "fire", "firm", "fish", "five",
-"flat", "flow", "food", "foot", "ford", "form", "fort", "four", "free",
-"from", "fuel", "full", "fund", "gain", "game", "gate", "gave", "gear",
-"gene", "gift", "girl", "give", "glad", "goal", "goes", "gold", "gone",
-"good", "gray", "grew", "grey", "grow", "gulf", "hair", "half", "hall",
-"hand", "hang", "hard", "harm", "hate", "have", "head", "hear", "heat",
-"held", "hell", "help", "here", "hero", "high", "hill", "hire", "hold",
-"hole", "holy", "home", "hope", "host", "hour", "huge", "hung", "hunt",
-"hurt", "idea", "inch", "into", "iron", "item", "jack", "jazz", "join",
-"jump", "jury", "just", "keen", "keep", "kent", "kick", "kill", "kind",
-"king", "knee", "know", "lack", "lady", "laid", "lake", "land", "lane",
-"last", "late", "lead", "left", "less", "life", "lift", "like", "line",
-"link", "list", "live", "load", "loan", "lock", "logo", "long", "look",
-"lord", "lose", "loss", "lost", "love", "luck", "made", "mail", "main",
-"make", "male", "many", "mark", "mass", "mate", "meal", "mean", "meat",
-"meet", "menu", "mere", "mice", "mind", "mine", "miss", "mode", "mood",
-"moon", "more", "most", "move", "much", "must", "name", "navy", "near",
-"neck", "need", "news", "next", "nice", "nick", "nine", "none", "nose",
-"note", "okay", "once", "only", "open", "over", "pace", "pack", "page",
-"paid", "pain", "pair", "palm", "park", "part", "pass", "past", "path",
-"peak", "pick", "pile", "pink", "pipe", "plan", "play", "plot", "plug",
-"plus", "poll", "pool", "poor", "port", "pose", "post", "pull", "pure",
-"push", "race", "rail", "rain", "rank", "rare", "rate", "read", "real",
-"rear", "rely", "rent", "rest", "rice", "rich", "ride", "ring", "rise",
-"risk", "road", "rock", "role", "roof", "room", "root", "rose", "rule",
-"rush", "safe", "said", "sake", "sale", "salt", "same", "sand", "save",
-"seat", "seed", "seek", "seen", "self", "sell", "send", "sent", "seat",
-"ship", "shop", "show", "shut", "side", "sign", "site", "size", "skin",
-"slip", "slow", "snow", "soil", "some", "song", "sort", "star", "stay",
-"step", "stop", "such", "suit", "sure", "take", "tale", "talk", "tall",
-"team", "tell", "tend", "term", "test", "text", "than", "that", "them",
-"then", "they", "thin", "this", "thus", "time", "told", "tone", "tony",
-"tool", "tour", "town", "tree", "trip", "true", "turn", "type", "unit",
-"upon", "used", "user", "vary", "vast", "very", "view", "vote", "wait",
-"walk", "wall", "want", "ward", "warm", "wash", "wave", "ways", "weak",
-"wear", "week", "well", "went", "were", "west", "what", "when", "whom",
-"wide", "wife", "wild", "will", "wind", "wine", "wing", "wise", "wish",
-"with", "word", "work", "yard", "year", "your", "zero", "zone",
-"about", "above", "actor", "acute", "admit", "adopt", "adult", "after", "again", "agent",
-"agree", "ahead", "alarm", "album", "alert", "allow", "alone", "along", "alter", "among",
-"anger", "angle", "angry", "apart", "apple", "apply", "arena", "argue", "arise", "armed",
-"array", "aside", "asset", "audio", "audit", "avoid", "award", "aware", "badly", "baker",
-"basic", "basis", "beach", "begin", "being", "below", "bench", "birth", "black", "blame",
-"blind", "block", "blood", "board", "boost", "booth", "bound", "brain", "brand", "bread",
-"break", "breed", "brief", "bring", "broad", "brown", "build", "built", "buyer", "cable",
-"carry", "catch", "cause", "chain", "chair", "chart", "check", "chief", "child", "china",
-"chose", "civil", "claim", "class", "clean", "clear", "click", "clock", "close", "coach",
-"coast", "could", "count", "court", "cover", "craft", "crash", "cream", "crime", "cross",
-"crowd", "crown", "curve", "cycle", "daily", "dance", "dated", "dealt", "death", "debate",
-"decay", "delay", "depth", "doing", "doubt", "dozen", "draft", "drama", "drawn", "dream",
-"dress", "drink", "drive", "drove", "earth", "eight", "elite", "empty", "enemy", "enjoy",
-"enter", "entry", "equal", "error", "event", "every", "exact", "exist", "extra", "faith",
-"false", "fault", "fiber", "field", "fifth", "fifty", "fight", "final", "first", "floor",
-"focus", "force", "forth", "forty", "found", "frame", "fresh", "front", "fruit", "fully",
-"funny", "giant", "given", "glass", "globe", "going", "grace", "grade", "grand", "grant",
-"grass", "great", "green", "gross", "group", "grown", "guard", "guess", "guest", "guide",
-"happy", "harsh", "heart", "heavy", "hence", "horse", "hotel", "house", "human", "ideal",
-"image", "index", "inner", "input", "issue", "japan", "joint", "judge", "known", "label",
-"large", "laser", "later", "laugh", "layer", "learn", "least", "leave", "legal", "level",
-"light", "limit", "lines", "lives", "local", "logic", "loose", "lower", "lucky", "lunch",
-"magic", "major", "maker", "march", "marke", "marry", "match", "maybe", "mayor", "media",
-"metal", "might", "minor", "model", "money", "month", "moral", "motor", "mount", "mouth",
-"music", "needs", "never", "newly", "night", "noise", "north", "noted", "novel", "nurse",
-"occur", "ocean", "offer", "often", "order", "other", "ought", "outer", "owner", "panel",
-"paper", "party", "peace", "phase", "phone", "photo", "piece", "pilot", "pitch", "place",
-"plain", "plane", "plant", "plate", "point", "pound", "power", "press", "price", "pride",
-"prime", "print", "prior", "prize", "proof", "prove", "queen", "quick", "quiet", "quite",
-"radio", "raise", "range", "rapid", "ratio", "reach", "ready", "refer", "right", "river",
-"rough", "round", "route", "royal", "rural", "scale", "scene", "scope", "score", "sense",
-"serve", "seven", "shall", "shape", "share", "sharp", "sheet", "shelf", "shell", "shift",
-"shirt", "shock", "shoot", "short", "shown", "sight", "since", "sixth", "sixty", "skill",
-"sleep", "slide", "small", "smart", "smile", "smith", "smoke", "solid", "solve", "sorry",
-"sound", "south", "space", "spare", "speak", "speed", "spend", "spent", "split", "spoke",
-"sport", "staff", "stage", "stand", "start", "state", "steam", "steel", "stick", "still",
-"stock", "stone", "stood", "store", "storm", "story", "strip", "stuff", "style", "sugar",
-"table", "taken", "taste", "teach", "teeth", "terry", "thank", "their", "theme", "there",
-"these", "thick", "thing", "think", "third", "those", "three", "throw", "tight", "times",
-"tired", "title", "today", "topic", "total", "touch", "tough", "tower", "track", "trade",
-"train", "treat", "trend", "trial", "tried", "tries", "truck", "truly", "trust", "truth",
-"twice", "under", "union", "unity", "until", "upper", "upset", "urban", "usage", "usual",
-"value", "video", "virus", "visit", "vital", "voice", "waste", "watch", "water", "wheel",
-"where", "which", "while", "white", "whole", "whose", "woman", "women", "world", "worry",
-"worse", "worst", "worth", "would", "wound", "write", "wrong", "yield", "young", "youth",
-"always", "amount", "animal", "answer", "appear", "almost", "across", "author",
-"beauty", "before", "become", "better", "between", "branch", "broken", "brought",
-"bureau", "button", "camera", "career", "castle", "casual", "census", "centre",
-"chance", "change", "charge", "choice", "choose", "church", "circle", "client",
-"closed", "coffee", "column", "combat", "coming", "common", "corner", "costly",
-"couldn", "couple", "course", "covered", "create", "credit", "crisis", "custom",
-"danger", "dealer", "debate", "decide", "degree", "demand", "depend", "desire",
-"detail", "device", "differ", "dining", "direct", "doctor", "driven", "driver",
-"during", "effect", "effort", "eighth", "either", "energy", "engage", "engine",
-"enough", "ensure", "entire", "entity", "escape", "estate", "ethics", "exceed",
-"except", "excess", "excuse", "expert", "family", "factor", "failed", "fairly",
-"fallen", "famous", "farmer", "father", "fellow", "female", "figure", "finger",
-"flight", "follow", "forced", "forest", "forget", "former", "foster", "friend",
-"future", "garden", "gather", "gender", "gentle", "golden", "ground", "growth",
-"handle", "happen", "hardly", "headed", "health", "height", "hidden", "holder",
-"honest", "honour", "impact", "import", "income", "indeed", "injury", "inside",
-"intact", "intent", "invest", "island", "itself", "junior", "keeper", "kitchen",
-"latest", "latter", "launch", "leader", "league", "learns", "leaves", "length",
-"lesson", "letter", "liable", "likely", "linked", "listen", "little", "living",
-"losing", "luxury", "mainly", "maintain", "married", "marked", "market", "master",
-"matter", "medium", "member", "mental", "merely", "method", "middle", "mighty",
-"minute", "mirror", "mobile", "modern", "modest", "moment", "moral", "motion",
-"moving", "multiple", "muscle", "museum", "mutual", "native", "nature", "nearby",
-"nearly", "needle", "nickel", "nobody", "normal", "notion", "number", "object",
-"obtain", "occupy", "office", "often", "online", "option", "orange", "origin",
-"output", "palace", "parcel", "parent", "partly", "parted", "patent", "people",
-"period", "permit", "person", "phrase", "picked", "picture", "pillow", "player",
-"please", "plenty", "pocket", "police", "policy", "prefer", "pretty", "public",
-"pulled", "purple", "raised", "random", "rather", "reader", "really", "reason",
-"recall", "recent", "reduce", "reflect", "reform", "regard", "relate", "relief",
-"remain", "remote", "remove", "repeat", "replay", "report", "rescue", "reside",
-"resist", "resort", "result", "return", "review", "reward", "rising", "robust",
-"rocket", "ruling", "safety", "salary", "sample", "saving", "scheme", "school",
-"screen", "search", "season", "second", "secret", "sector", "secure", "seeing",
-"seemed", "select", "seller", "senior", "series", "serious", "served", "service",
-"settle", "severe", "sexual", "should", "signal", "signed", "silent", "silver",
-"simple", "simply", "singer", "single", "sister", "slight", "social", "solely",
-"someone", "speaker", "speech", "spirit", "spoken", "spread", "spring", "square",
-"stable", "stance", "standard", "start", "state", "static", "status", "steady",
-"stolen", "strain", "stream", "street", "strike", "string", "strong", "studio",
-"subject", "submit", "sudden", "suffer", "summer", "summit", "supply", "surely",
-"survey", "switch", "system", "tactic", "talent", "target", "teacher", "temple",
-"tenant", "tender", "tennis", "thanks", "theory", "thirty", "though", "threat",
-"thrown", "ticket", "timely", "timing", "tissue", "toward", "traffic", "tragic",
-"travel", "treated", "trying", "twelve", "twenty", "unique", "united", "unless",
-"unlike", "update", "useful", "valley", "varied", "vastly", "vector", "victim",
-"viewer", "virtue", "vision", "visual", "volume", "wander", "wealth", "weekly",
-"weight", "wholly", "window", "winner", "winter", "within", "wonder", "worker",
-"writing", "writer", "yellow", "youths",
-"ability", "absence", "academy", "account", "achieve", "acquire", "address",
-"advance", "advises", "against", "airline", "already", "although", "analyst",
-"analyze", "ancient", "another", "anxiety", "anybody", "anymore", "anything",
-"anytime", "appears", "approach", "approval", "arrived", "article", "artists",
-"attempt", "auction", "average", "balance", "banking", "barrier", "battery",
-"because", "becoming", "between", "billion", "booking", "breathe", "brother",
-"builder", "cabinet", "campaign", "capital", "capture", "careful", "carried",
-"carrier", "cartoon", "catcher", "central", "century", "certain", "chamber",
-"changed", "channel", "chapter", "charity", "cheaper", "checked", "chicken",
-"children", "classic", "climate", "closing", "cluster", "coastal", "collect",
-"college", "combine", "comfort", "command", "comment", "company", "compare",
-"compete", "complex", "concept", "concern", "conduct", "confirm", "connect",
-"consent", "consider", "consist", "contact", "contain", "content", "contest",
-"context", "control", "convert", "correct", "council", "counsel", "counter",
-"country", "covered", "crystal", "culture", "current", "customer", "cutting",
-"damage", "darkest", "dealers", "decided", "decline", "decrease", "defense",
-"deliver", "density", "deposit", "desktop", "despite", "destroy", "develop",
-"diamond", "digital", "directly", "disease", "dismiss", "display", "distance",
-"distinct", "district", "diverse", "divided", "drawing", "driver", "dynamic",
-"earlier", "earning", "economic", "educate", "element", "emailing", "employed",
-"employee", "employer", "enabling", "encounter", "engaged", "enhance", "enjoyed",
-"enormous", "entirely", "entrance", "episode", "equally", "escape", "essential",
-"establish", "evening", "evidence", "exactly", "example", "exchange", "excited",
-"execute", "exercise", "exhibit", "expense", "explain", "explore", "express",
-"extreme", "factory", "faculty", "feature", "federal", "feeling", "fiction",
-"fifteen", "filling", "finance", "finished", "fishing", "fitness", "foreign",
-"forever", "formula", "forward", "founder", "freedom", "further", "gallery",
-"general", "genetic", "genuine", "greatly", "happens", "healthy", "heavily",
-"highest", "himself", "history", "holiday", "housing", "however", "hundred",
-"husband", "identity", "imagine", "improved", "include", "initial", "inquiry",
-"install", "instead", "intense", "interim", "internal", "internet", "investor",
-"involved", "isolate", "journal", "journey", "justice", "justify", "keeping",
-"kingdom", "kitchen", "lacking", "landing", "largest", "lasting", "leading",
-"learned", "leaving", "library", "limited", "logical", "looking", "machine",
-"manager", "married", "meaning", "measure", "medical", "meeting", "member",
-"mention", "message", "million", "mineral", "minimal", "minutes", "miracle",
-"mislead", "mission", "mistake", "monitor", "monthly", "morning", "musical",
-"natural", "nearest", "network", "nobody", "normal", "noticed", "nursing",
-"obvious", "offered", "officer", "ongoing", "opening", "operate", "opinion",
-"opposite", "organic", "outcome", "outside", "overall", "package", "parents",
-"partial", "partner", "passage", "patient", "pattern", "payment", "peaceful",
-"peoples", "perfect", "perform", "perhaps", "physics", "picture", "plastic",
-"pointed", "popular", "portion", "possess", "posting", "poverty", "precise",
-"predict", "premier", "premium", "prepare", "present", "prevent", "primary",
-"printer", "privacy", "private", "problem", "process", "produce", "product",
-"profile", "program", "project", "promise", "promote", "protect", "protein",
-"protest", "provide", "purpose", "pushing", "qualify", "quality", "quarter",
-"rapidly", "rather", "reading", "reality", "receipt", "receive", "recover",
-"reflect", "reform", "refugee", "refusal", "regard", "related", "release",
-"relieve", "remain", "remains", "removal", "removed", "replace", "request",
-"require", "reserve", "resident", "resolve", "respect", "respond", "restore",
-"result", "retired", "revenue", "reverse", "review", "revised", "routine",
-"sailing", "satisfy", "science", "screened", "section", "seeking", "seventh",
-"several", "shortly", "sickest", "sitting", "society", "somehow", "someone",
-"speaker", "special", "species", "spending", "sporting", "standard", "started",
-"starting", "station", "storage", "straight", "strength", "striking", "student",
-"subject", "success", "suggest", "summer", "support", "suppose", "surface",
-"surprise", "suspect", "sustain", "teacher", "teaching", "tension", "theater",
-"thinking", "through", "together", "traffic", "training", "transfer", "trouble",
-"turning", "typical", "uniform", "unusual", "utility", "variety", "various",
-"vehicle", "venture", "village", "violence", "visible", "waiting", "walking",
-"warning", "wearing", "weather", "wedding", "weekend", "welcome", "western",
-"whether", "whistle", "willing", "winning", "without", "working", "writing",
-"written", "younger", "yourself",
-"absolute", "abstract", "academic", "accepted", "accurate", "activity", "actually", "addition",
-"adequate", "adjacent", "advantage", "advisable", "advising", "airplane", "alliance", "although",
-"analysis", "ancestor", "announce", "anything", "anywhere", "apartment", "appetite", "applicant",
-"approach", "approval", "argument", "assembly", "assistance", "associate", "assumeing", "athletic",
-"attached", "attitude", "attorney", "audience", "automatic", "available", "average", "backyard",
-"baseline", "behavior", "birthday", "boundary", "building", "business", "calendar", "campaign",
-"capacity", "careless", "carefully", "carrier", "category", "caution", "ceiling", "cellular",
-"ceremony", "certainly", "challenge", "chamber", "changing", "chapter", "chemical", "children",
-"circular", "citizens", "clarified", "classroom", "clearly", "climate", "clinical", "closer",
-"clothing", "coalition", "college", "combine", "commence", "commerce", "committed", "commonly",
-"company", "compare", "compared", "compete", "complete", "composed", "compound", "concerned",
-"conclude", "concrete", "conducts", "conflict", "confused", "connects", "consensus", "consider",
-"constant", "construct", "consulted", "consumer", "contain", "continued", "contract", "contrary",
-"contrast", "control", "convention", "convinced", "corporate", "correctly", "creation", "creative",
-"criteria", "criticism", "crossing", "customer", "database", "daughter", "deadline", "decision",
-"declared", "decrease", "dedicate", "defender", "defining", "delivery", "dependent", "deployed",
-"describe", "designer", "desktop", "desperate", "detected", "developed", "developer", "diagonal",
-"dialogue", "diamond", "directed", "direction", "director", "disagree", "disappear", "disaster",
-"discussed", "disease", "dismissed", "distance", "distinct", "dividing", "domestic", "dominant",
-"dramatic", "dropped", "duration", "economic", "educated", "education", "effective", "efficient",
-"elephant", "elevator", "embraced", "emerging", "employed", "employee", "employer", "enabling",
-"encounter", "encouraged", "ending", "enduring", "engineer", "enhanced", "enormous", "entirely",
-"entrance", "equation", "equipment", "essential", "established", "estimated", "evaluate", "evening",
-"everyone", "everything", "evidence", "exchange", "exciting", "exercise", "exhibit", "existing",
-"expected", "explained", "exploring", "external", "facility", "familiar", "favorable", "favorite",
-"feedback", "feeling", "female", "fertile", "fictional", "finally", "financial", "finished",
-"fitness", "flexible", "following", "forever", "forming", "formula", "forward", "founding",
-"frequent", "friendly", "frontier", "function", "fundamental", "furniture", "generate", "general",
-"generous", "genetics", "graduate", "graphical", "greatest", "grocery", "guideline", "hardware",
-"headline", "healthy", "heavily", "helpful", "heritage", "historic", "honestly", "hospitals",
-"housing", "humanity", "identify", "identity", "ideally", "illustrate", "imagine", "immediate",
-"immense", "important", "improved", "including", "increase", "indicate", "individual", "industry",
-"informed", "injected", "innocent", "inspired", "instance", "institute", "instruct", "integrate",
-"intended", "intensity", "interests", "internal", "internet", "interview", "introduce", "involved",
-"islander", "isolated", "judgment", "junction", "keyboard", "landscape", "language", "largest",
-"launching", "leading", "learning", "leisure", "library", "lifetime", "lighting", "limiting",
-"listener", "location", "logical", "magazine", "majority", "making", "manager", "manner", "marriage",
-"massive", "material", "maximum", "meaning", "measure", "medical", "meeting", "member", "mention",
-"message", "method", "minimum", "missing", "mission", "mistake", "monitor", "monthly", "morning",
-"musician", "national", "natural", "nearest", "negative", "nervous", "network", "neutral", "nobody",
-"noticed", "novelty", "numbered", "obviously", "occasion", "offering", "official", "opening",
-"operate", "opinion", "opposed", "organic", "original", "ourselves", "outside", "overall",
-"package", "painting", "parallel", "parental", "partial", "partner", "passenger", "pattern",
-"payment", "peaceful", "penalty", "pending", "perfectly", "perform", "perhaps", "physical",
-"picture", "planning", "pleasant", "pleasure", "pointing", "popular", "portion", "possess",
-"possible", "posting", "practice", "precious", "predict", "premium", "prepare", "presented",
-"pressure", "previous", "primary", "princess", "printed", "priority", "privacy", "problem",
-"process", "produce", "product", "professor", "program", "project", "promised", "promote",
-"proposal", "property", "prospect", "protect", "provided", "province", "purchase", "purpose",
-"quantity", "question", "quickly", "radiator", "railroad", "reaction", "reading", "reality",
-"realize", "receive", "recently", "recovery", "regional", "related", "relation", "released",
-"relieved", "remaining", "remember", "reminded", "removed", "repeating", "replaced", "reported",
-"required", "research", "resident", "resource", "response", "restored", "returned", "revealed",
-"revenue", "reviewed", "revised", "rigorous", "romantic", "schedule", "science", "section",
-"security", "selected", "sentence", "service", "setting", "several", "shortage", "showing",
-"significant", "silently", "situation", "slightly", "society", "software", "soldiers", "solution",
-"somebody", "somehow", "someone", "speaker", "special", "species", "spending", "sporting",
-"standard", "started", "starting", "station", "strategy", "strength", "striking", "student",
-"studying", "subject", "success", "suddenly", "suggest", "summer", "support", "suppose",
-"surface", "surprise", "surround", "suspended", "swimming", "teacher", "teaching", "tension",
-"theatre", "thinking", "thorough", "through", "together", "tomorrow", "training", "transfer",
-"transport", "treatment", "trouble", "turning", "typical", "uniform", "universe", "unusual",
-"upgrade", "utility", "valuable", "variable", "variety", "various", "vehicle", "venture",
-"version", "victory", "violent", "visible", "visitor", "waiting", "walking", "warning",
-"watching", "wearing", "weather", "wedding", "weekend", "welcome", "western", "whatever",
-"whether", "whisper", "willing", "winning", "without", "working", "writing", "written",
-"yourself",
-"acceptable", "according", "accuracy", "achievement", "additional", "advantage", "advisory",
-"agreement", "aircraft", "alcoholic", "although", "ambiguous", "analysis", "announce",
-"anything", "apartment", "applicant", "approval", "argument", "assembly", "associate",
-"assuming", "athletics", "attacked", "attending", "attitude", "audience", "available",
-"backwards", "bacteria", "baseball", "bathroom", "behavior", "birthday", "boundary",
-"breaking", "building", "business", "calculate", "campaign", "capacity", "carefully",
-"careless", "carousel", "category", "ceilinged", "celebrate", "centuries", "ceremony",
-"certainly", "challenge", "changing", "chaptered", "chemical", "children", "circular",
-"citizens", "clarified", "classroom", "cleansing", "clinical", "colleague", "collapse",
-"collected", "college", "combine", "commerce", "committed", "community", "companion",
-"compelled", "completely", "composed", "compound", "concerned", "concluded", "concrete",
-"condition", "conducted", "confident", "conflicts", "connected", "consensus", "considered",
-"constant", "construct", "consumer", "contained", "continue", "contract", "contrary",
-"contrast", "controlled", "converting", "converted", "corrected", "corporate", "correctly",
-"creation", "creative", "criteria", "criticism", "cultural", "customer", "database",
-"daughter", "deadline", "decision", "declaring", "decreased", "dedicated", "defendant",
-"defending", "delivery", "dependent", "deployed", "describe", "designer", "detailed",
-"detecting", "detection", "developed", "developer", "diagonal", "dialogue", "directed",
-"direction", "director", "disagree", "disappear", "disasters", "discussed", "distance",
-"distinct", "dividing", "domestic", "dominant", "dramatic", "dropped", "duration",
-"educated", "education", "effective", "efficient", "electronic", "emotional", "employee",
-"employer", "encounter", "encouraged", "engineered", "enhanced", "enormous", "entirely",
-"entrance", "equipment", "essential", "established", "estimated", "evaluate", "everyone",
-"everything", "evidence", "exchange", "exciting", "exercise", "existing", "expected",
-"explained", "exploring", "external", "facility", "familiar", "favorable", "favorite",
-"feedback", "financial", "finished", "flexible", "following", "forever", "forming",
-"formulae", "forward", "founder", "frequent", "friendly", "frontier", "function",
-"functional", "fundamental", "furniture", "generated", "general", "generally", "genetics",
-"graduate", "graphical", "greatest", "guideline", "hardware", "headline", "healthy",
-"heaviness", "helpful", "heritage", "historic", "honestly", "hospitals", "housing",
-"humanity", "identified", "identity", "illustrate", "imagine", "immediate", "immense",
-"important", "improved", "including", "increase", "indicated", "individual", "industry",
-"informed", "injected", "innocent", "inspired", "instance", "institute", "instructed",
-"integrated", "intended", "intensity", "interests", "internal", "internet", "interview",
-"introduced", "involved", "isolated", "judgment", "junction", "keyboard", "landscape",
-"language", "launching", "learning", "leisurely", "library", "lifetime", "lighting",
-"limiting", "listener", "location", "logical", "magazine", "majority", "manager", "marriage",
-"massively", "material", "maximum", "meaning", "measured", "medical", "meeting", "member",
-"mentioning", "message", "method", "midnight", "minimum", "missing", "mission", "mistaken",
-"monitoring", "monthly", "morning", "musician", "national", "natural", "nearest", "negative",
-"nervously", "networked", "neutral", "nobody", "noticed", "novelty", "numbered", "objective",
-"obviously", "occasion", "offering", "official", "opening", "operate", "operating", "opinion",
-"opposed", "organic", "original", "ourselves", "outside", "overall", "package", "painting",
-"parallel", "parental", "partial", "partner", "passenger", "patterned", "payment", "peaceful",
-"penalty", "pending", "perfectly", "perform", "perhaps", "physical", "picture", "planning",
-"pleasant", "pleasure", "pointing", "popular", "portion", "possessing", "posting", "practice",
-"precious", "predict", "premium", "prepare", "presented", "pressure", "previously", "primary",
-"princess", "printed", "priority", "privacy", "problem", "process", "producing", "product",
-"professor", "program", "projected", "promising", "promote", "proposal", "property", "prospect",
-"protect", "provided", "province", "purchase", "purposeful", "quantity", "questioned",
-"quickness", "radiation", "railroad", "reaction", "realistic", "reallocate", "reading", "reality",
-"realize", "received", "recently", "recovery", "regional", "related", "relation", "released",
-"relieved", "remaining", "remember", "reminded", "removed", "repeating", "replaced", "reported",
-"required", "research", "resident", "resource", "response", "restored", "returned", "revealed",
-"revenue", "reviewed", "revised", "rigorous", "romantic", "schedule", "scientific", "science",
-"sectioned", "security", "selected", "sentence", "service", "setting", "separated", "several",
-"shortened", "showing", "significant", "silently", "situation", "slightly", "society",
-"software", "soldiers", "solution", "somebody", "somehow", "someone", "speaker", "specialist",
-"species", "spending", "sporting", "standard", "started", "starting", "stationed", "strategy",
-"strength", "striking", "students", "studying", "subject", "success", "suddenly", "suggestion",
-"summer", "supported", "supposed", "surface", "surprised", "surround", "suspended", "swimming",
-"teacher", "teaching", "tension", "theatrical", "thinking", "thorough", "throughout", "together",
-"tomorrow", "training", "transfer", "transport", "treatment", "troubled", "turning", "typical",
-"uniformed", "university", "unusual", "upgrade", "utility", "valuable", "variable", "variety",
-"various", "vehicle", "venture", "version", "victorious", "violent", "visible", "visitor",
-"waiting", "walking", "warning", "watching", "wearing", "weather", "wedding", "weekend",
-"welcome", "western", "whatever", "whether", "whispered", "willing", "winning", "without",
-"working", "writing", "written", "yourself",
-"able", "acid", "also", "area", "army", "away", "baby", "back", "ball", "band",
-"bank", "base", "bath", "bear", "beat", "been", "beer", "bell", "belt", "bend",
-"best", "bill", "bird", "blow", "blue", "boat", "body", "bond", "bone", "book",
-"boom", "born", "boss", "both", "bowl", "bulk", "burn", "bush", "busy", "call",
-"calm", "came", "camp", "card", "care", "case", "cash", "cast", "cell", "chat",
-"chip", "city", "club", "coal", "coat", "code", "cold", "come", "cook", "cool",
-"cope", "copy", "core", "cost", "crew", "crop", "dark", "data", "date", "dawn",
-"days", "dead", "deal", "dear", "debt", "deep", "deny", "desk", "dial", "diet",
-"door", "dose", "down", "draw", "drew", "drop", "drug", "dual", "duck", "duty",
-"each", "earn", "ease", "east", "easy", "edge", "else", "even", "ever", "evil",
-"exit", "face", "fact", "fail", "fair", "fall", "farm", "fast", "fate", "fear",
-"feed", "feel", "feet", "fell", "felt", "file", "fill", "film", "find", "fine",
-"fire", "firm", "fish", "five", "flat", "flow", "food", "foot", "ford", "form",
-"fort", "four", "free", "from", "fuel", "full", "fund", "gain", "game", "gate",
-"gave", "gear", "gene", "gift", "girl", "give", "goal", "goes", "gold", "golf",
-"gone", "good", "gray", "grey", "grow", "gulf", "hair", "half", "hall", "hand",
-"hang", "hard", "harm", "hate", "have", "head", "heal", "hear", "heat", "held",
-"help", "here", "hero", "high", "hill", "hire", "hold", "hole", "home", "hope",
-"host", "hour", "huge", "hung", "hunt", "hurt", "idea", "idle", "image", "inch",
-"into", "iron", "item", "jack", "jazz", "join", "jump", "jury", "just", "keen",
-"keep", "kill", "kind", "king", "knee", "knew", "know", "lack", "lady", "laid",
-"lake", "land", "lane", "last", "late", "lead", "left", "less", "life", "lift",
-"like", "line", "link", "list", "live", "load", "loan", "lock", "logo", "long",
-"look", "lord", "lose", "loss", "lost", "love", "luck", "made", "mail", "main",
-"make", "male", "many", "mark", "mass", "matt", "meal", "mean", "meat", "meet",
-"melt", "menu", "mere", "mild", "mile", "milk", "mill", "mind", "mine", "miss",
-"mode", "moon", "more", "most", "move", "much", "must", "name", "navy", "near",
-"neck", "need", "news", "next", "nice", "nick", "nine", "none", "normal", "nose",
-"note", "okay", "once", "onto", "open", "oral", "over", "pace", "pack", "page",
-"paid", "pain", "pair", "pale", "park", "part", "pass", "past", "path", "peak",
-"pick", "pink", "pipe", "plan", "play", "plot", "plug", "plus", "poll", "pool",
-"poor", "port", "pose", "post", "pull", "pure", "push", "race", "rail", "rain",
-"rank", "rare", "rate", "read", "real", "rear", "rely", "rent", "rest", "rice",
-"rich", "ride", "ring", "rise", "risk", "road", "rock", "role", "roll", "roof",
-"room", "root", "rose", "rule", "rush", "safe", "said", "sake", "sale", "salt",
-"same", "sand", "save", "seat", "seed", "seek", "seem", "seen", "self", "sell",
-"send", "sent", "sept", "ship", "shop", "show", "shut", "sick", "side", "sign",
-"site", "size", "skin", "slip", "slow", "snow", "soft", "soil", "sold", "sole",
-"some", "song", "soon", "sort", "soul", "spot", "star", "stay", "step", "stop",
-"such", "suit", "sure", "take", "tale", "talk", "tall", "tank", "tape", "task",
-"team", "term", "test", "text", "than", "that", "them", "then", "they", "thin",
-"this", "thus", "time", "told", "tone", "took", "tool", "tour", "town", "trap",
-"tree", "trim", "trip", "true", "tune", "turn", "type", "unit", "upon", "used",
-"useful", "user", "vast", "very", "view", "vote", "wage", "wait", "wake", "walk",
-"wall", "want", "ward", "warm", "wash", "wave", "ways", "weak", "wear", "week",
-"well", "went", "were", "west", "what", "when", "whom", "wide", "wife", "wild",
-"will", "wind", "wine", "wing", "wise", "wish", "with", "wood", "word", "work",
-"yard", "year", "your", "zero", "zone",
-"in the", "on the", "at the", "by the", "for the", "to the", "from the", "with the", "about the", "over the",
-"under the", "through the", "across the", "before the", "after the", "as well", "as well as", "such as",
-"according to", "due to", "in addition", "in fact", "in front", "in order", "in place", "in spite",
-"on account", "on behalf", "on top", "at least", "at most", "at once", "for example", "for sure",
-"by far", "by means", "by way", "by no means", "from now", "from time", "with regard", "with respect",
-"as if", "as long as", "as much as", "as soon as", "as far as", "even though", "even if", "each other",
-"one another", "back and forth", "over and over", "right away", "so far", "sooner or later", "more or less",
-"no matter", "just about", "up to", "go on", "go back", "go ahead", "come up", "come across", "look after",
-"look for", "look forward", "look out", "take off", "take on", "take up", "put off", "put on", "put up with",
-"set up", "show up", "turn off", "turn on", "turn over", "turn out", "get in", "get out", "get by",
-"get over", "get together", "get back", "get away", "make up", "make sure", "give up", "give in",
-"hold on", "keep on", "fall apart", "figure out", "find out", "deal with", "do over", "end up",
-"bring up", "call off", "call on", "carry on", "carry out", "cut down", "cut off", "check in",
-"check out", "come in", "come out", "take care", "take over", "take after", "put down", "put together",
-"run out", "run into", "run over", "look up", "break down", "break up", "break out", "set off",
-"set aside", "pass away", "pass by", "stand for", "stand up", "stand out", "hold back", "hold up",
-"keep up", "keep out", "keep off", "turn around", "turn back", "turn up", "bring back", "bring down",
-"bring in", "bring out", "give back", "give out", "look back", "look around", "look into", "look over",
-"come back", "come along", "come down", "come forward", "go down", "go up", "go over", "go through",
-"take away", "take down", "take in", "make out", "make over", "make into", "put away", "put up",
-"put out", "put aside", "run away", "run along", "run down", "run off", "set back", "set out",
-"set up", "show off", "show around", "show down", "come up with", "go along with", "get rid of",
-"be able to", "have to", "have got", "ought to", "would rather", "used to", "used for", "was going",
-"are going", "is going", "there is", "there are", "it is", "it was", "it has", "it had",
-"as though", "as if", "as well as", "at all", "at first", "at least", "at last", "in time",
-"in case", "in line", "in charge", "in general", "in order to", "in other words", "in particular",
-"out of", "off of", "next to", "close to", "far from", "due to", "thanks to", "according to",
-"on top of", "on behalf of", "on the way", "on the other hand", "all of a sudden", "one of the",
-"part of the", "some of the", "as a result", "as far as", "at the same time", "by the way",
-"for the most", "for the sake", "for the first", "in the middle", "in the end", "in the long run",
-"out of the", "up to the", "up to now", "with the help", "with the exception", "with the aim",
-"with the intention", "by the time", "for a while", "for example", "from the point", "from the start",
-"for all", "to and fro", "now and then", "once in a while", "more or less", "less or more", "little by little",
-"step by step", "bit by bit", "side by side", "face to face", "hand in hand", "heart to heart",
-"back to back", "head to head", "nose to nose", "toe to toe", "word for word", "line by line",
-"day by day", "end to end", "far and wide", "high and low", "here and there", "through thick",
-"through thin", "up and down", "up and about", "up and running", "in and out", "in and around",
-"now or never", "so far so good", "once and for all", "safe and sound", "peace and quiet",
-"according to", "ahead of time", "all of them", "all over again", "all the time", "as a result", 
-"as far as", "as soon as", "as well as", "at all costs", "at any rate", "at least once", 
-"at the moment", "at the same time", "at the very least", "away from home", "back and forth", 
-"be able to", "be going to", "be in charge", "be on time", "be part of", "be supposed to", 
-"be used to", "be with me", "because of the", "by and large", "by far the", "by means of", 
-"by no means", "by the way", "come across as", "come along with", "come back to", 
-"come down with", "come from the", "come in handy", "come out of", "come to mind", 
-"come up with", "could be the", "deal with the", "do away with", "do not know", 
-"do the same", "each and every", "end up in", "even if the", "even though it", 
-"every now and then", "fall apart at", "fall behind in", "fall out with", "far from the", 
-"figure out how", "find out about", "for all intents", "for all purposes", 
-"for example the", "for instance the", "for the sake", "for the time", "from now on", 
-"from the start", "get along with", "get back at", "get back to", "get rid of", 
-"get together with", "get up early", "give away the", "give back to", "give in to", 
-"give it up", "go ahead with", "go along with", "go back to", "go down with", 
-"go in for", "go on with", "go out with", "go over the", "go through with", 
-"grow up to", "had better be", "hand in the", "hang on to", "have a look", 
-"have to be", "have to do", "have to get", "have to go", "have to see", "have to take", 
-"hold on to", "keep an eye", "keep on doing", "keep up with", "look after the", 
-"look at the", "look for the", "look forward to", "look out for", "look up to", 
-"make a difference", "make a mistake", "make an effort", "make it up", "make of the", 
-"make sure that", "make the most", "make up for", "move on to", "put aside the", 
-"put away the", "put down the", "put forward the", "put off the", "put on the", 
-"put together the", "put up with", "run across the", "run after the", "run into the", 
-"run out of the", "set about the", "set aside the", "set back the", "set off the", 
-"set out to", "set up the", "show around the", "show off the", "show up at", 
-"so far so good", "sort of the", "stand for the", "stand up for", "take after the", 
-"take care of", "take down the", "take for granted", "take in the", "take it easy", 
-"take off the", "take on the", "take out the", "take over the", "take part in", 
-"take place at", "take up the", "thank you for", "that is the", "the same as", 
-"think about the", "think of the", "throw away the", "to and fro", "try out the", 
-"turn down the", "turn into the", "turn off the", "turn on the", "turn out the", 
-"turn over the", "up to the", "use up the", "wait on the", "what about the", 
-"whether or not", "with regard to", "work out the", "would rather be", "you are the", 
-"you have the", "you will be", "as good as", "as high as", "as long as", "as low as", 
-"as much as", "as soon as possible", "as strong as", "at all times", "at first sight", 
-"at hand", "at once", "at present", "at random", "at rest", "at the end", 
-"at the expense", "at the front", "at the moment", "at the same place", "at the same time", 
-"at the top", "away from the", "by degrees", "by hand", "by means of", "by no means", 
-"by the book", "by the end", "by the time", "come into the", "come out with", 
-"come to the", "do without the", "each time", "every day", "every little", "every now", 
-"every now and then", "every one", "for a change", "for a long time", "for a moment", 
-"for a while", "for good measure", "for instance", "for the sake of", "from a distance", 
-"from beginning to end", "from now on", "from place to place", "from side to side", 
-"get a grip", "get a life", "get ahead", "get along", "get around", "get away from", 
-"get behind", "get in touch", "get it on", "get off the", "get on with", "get over it", 
-"get through", "get together", "give a hand", "give a lift", "give a ride", "give a shot", 
-"give an answer", "give an example", "give it a try", "go all out", "go along with", 
-"go back on", "go by", "go down with", "go for", "go in", "go into", "go off", "go on about", 
-"go out of", "go over", "go through", "go under", "go up", "grow out of", "grow up", 
-"hang around", "hang out", "have a bite", "have a go", "have a look at", "have a nap", 
-"have a seat", "have a word", "hold back", "hold on", "hold out", "keep at", 
-"keep away", "keep back", "keep down", "keep off", "keep on", "keep out", "keep up", 
-"let down", "let in", "look after", "look around", "look at", "look back", "look down", 
-"look forward to", "look in", "look into", "look out", "look over", "look through", 
-"look up", "make a call", "make a deal", "make a difference", "make a fortune", 
-"make a living", "make a mistake", "make a plan", "make a point", "make an effort", 
-"make it", "make room", "make sense", "make sure", "make the most of", "make up", 
-"make up for", "move along", "move in", "move out", "move over", "move up", 
-"put aside", "put away", "put down", "put forward", "put off", "put on", "put out", 
-"put together", "put up", "run across", "run after", "run away", "run down", 
-"run into", "run off", "run out", "set about", "set aside", "set back", "set off", 
-"set out", "set up", "show around", "show off", "show up", "take after", "take apart", 
-"take away", "take back", "take down", "take in", "take off", "take on", "take out", 
-"take over", "take part", "take place", "take up", "throw away", "turn around", 
-"turn back", "turn down", "turn in", "turn off", "turn on", "turn out", "turn over", 
-"watch out", "work on", "work out", "write down", "you know", "you mean", "you see",
-"all in all", "as a rule", "as a whole", "as soon as", "at a loss", "at all times",
-"at large", "at last", "at least", "at most", "at once", "by and by", "by far", 
-"by means of", "by no means", "by the way", "from time to time", "in a row", 
-"in a way", "in case of", "in charge", "in front of", "in general", "in order to", 
-"in place", "in spite of", "in terms of", "in the event", "in the end", "in the first place",
-"in the long run", "in the middle", "in the meantime", "in the same way", "in the short term",
-"in time", "off the record", "on account of", "on and off", "on behalf of", "on top of", 
-"on the contrary", "on the other hand", "on the whole", "once in a while", "one by one",
-"one of a kind", "out of control", "out of order", "out of the way", "over and above", 
-"over and over", "over the top", "under control", "under pressure", "up to date", "up to now",
-"with regard to", "with respect to", "with the exception", "with the help of", "without a doubt"
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-];
-
-
-
+const normalAlphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 .,!?:;'\"-_=+()[]{}<>/@#$%&*\\|^~`\n";
 let dictionaryPatterns = [];
-function addToDict(str) {
-  if (!dictionaryPatterns.includes(str)) dictionaryPatterns.push(str);
-}
-baseWords.forEach(word => addToDict(word));
-dictionaryPatterns.sort((a, b) => b.length - a.length);
+let allSymbols = [];
+let dictToSymbol = {}, symbolToDict = {}, singleCharMap = {}, singleCharReverseMap = {};
+let isUpdating = false;
 
-// Enhanced Symbol Pool with more characters
+async function init() {
+  try {
+    const response = await fetch('dictionary.json');
+    dictionaryPatterns = await response.json();
+
+    // Sort by length descending so longest patterns match first
+    dictionaryPatterns.sort((a, b) => b.length - a.length);
+
+    generateSymbols();       // create your 8,000+ symbols
+    buildDictionaryMappings(); // map patterns and single chars
+
+    originalBox.addEventListener("input", updateFromOriginal);
+    encryptedBox.addEventListener("input", updateFromEncrypted);
+    keyBox.addEventListener("input", updateFromOriginal);
+
+    console.log("Dictionary loaded and sorted successfully.");
+  } catch (e) {
+    console.error("Failed to load dictionary.json. Ensure you are running on a local server.", e);
+  }
+}
+
+
 function generateSymbols() {
-  let syms = [];
-  
-  // Tibetan characters (compact)
-  for(let i=0x0F00; i<=0x0FFF; i++) syms.push(String.fromCharCode(i));
-  
-  // Mathematical Operators
-  for(let i=0x2200; i<=0x22FF; i++) syms.push(String.fromCharCode(i));
-  
-  // Geometric Shapes
-  for(let i=0x25A0; i<=0x25FF; i++) syms.push(String.fromCharCode(i));
-  
-  // Box Drawing
-  for(let i=0x2500; i<=0x257F; i++) syms.push(String.fromCharCode(i));
-  
-  // Miscellaneous Symbols
-  for(let i=0x2600; i<=0x26FF; i++) syms.push(String.fromCharCode(i));
-  
-  // Dingbats
-  for(let i=0x2700; i<=0x27BF; i++) syms.push(String.fromCharCode(i));
-  
-  // Supplemental Arrows
-  for(let i=0x2900; i<=0x297F; i++) syms.push(String.fromCharCode(i));
-  
-  // Braille Patterns 
-  for(let i=0x2800; i<=0x28FF; i++) syms.push(String.fromCharCode(i));
-  
-  // Additional symbols
-  for(let i=0x4E00; i<=0x4FE0; i+=2) syms.push(String.fromCharCode(i));
-  
-  // Cyrillic Extended
-  for(let i=0x2DE0; i<=0x2DFF; i++) syms.push(String.fromCharCode(i));
-  
-  // Ensure enough symbols for compression
-  syms.push(..."∀∁∂∃∄∅∆∇∈∉∊∋∌∍∎∏∐∑−∓∔∕∖∗∘∙√∛∜∝∞∟∠∡∢∣∤∥∦∧∨∩∪∫∬∭∮∯∰∱∲∳∴∵∶∷∸∹∺∻∼∽∾∿≀≁≂≃≄≅≆≇≈≉≊≋≌≍≎≏≐≑≒≓≔≕≖≗≘≙≚≛≜≝≞≟≠≡≢≣≤≥≦≧≨≩≪≫≬≭≮≯≰≱≲≳≴≵≶≷≸≹≺≻≼≽≾≿⊀⊁⊂⊃⊄⊅⊆⊇⊈⊉⊊⊋⊌⊍⊎⊏⊐⊑⊒⊓⊔⊕⊖⊗⊘⊙⊚⊛⊜⊝⊞⊟⊠⊡⊢⊣⊤⊥⊦⊧⊨⊩⊪⊫⊬⊭⊮⊯⊰⊱⊲⊳⊴⊵⊶⊷⊸⊹⊺⊻⊼⊽⊾⊿⋀⋁⋂⋃⋄⋅⋆⋇⋈⋉⋊⋋⋌⋍⋎⋏⋐⋑⋒⋓⋔⋕⋖⋗⋘⋙⋚⋛⋜⋝⋞⋟⋠⋡⋢⋣⋤⋥⋦⋧⋨⋩⋪⋫⋬⋭⋮⋯⋰⋱");
-  
-  // Greek and Coptic
-  for(let i=0x0370; i<=0x03FF; i++) syms.push(String.fromCharCode(i));
-  
-  // Enclosed Alphanumerics
-  for(let i=0x2460; i<=0x24FF; i++) syms.push(String.fromCharCode(i));
-  
-  return syms;
+  const syms = [];
+
+  // Private Use Area (0xE000–0xF8FF) = 6,400 chars
+  for (let i = 0xE000; i <= 0xF8FF; i++) syms.push(String.fromCharCode(i));
+
+  // Mathematical Operators (0x2200–0x22FF) = 256 chars
+  for (let i = 0x2200; i <= 0x22FF; i++) syms.push(String.fromCharCode(i));
+
+  // Geometric Shapes (0x25A0–0x25FF) = 96 chars
+  for (let i = 0x25A0; i <= 0x25FF; i++) syms.push(String.fromCharCode(i));
+
+  // Miscellaneous Technical (0x2300–0x23FF) = 256 chars
+  for (let i = 0x2300; i <= 0x23FF; i++) syms.push(String.fromCharCode(i));
+
+  // Miscellaneous Symbols (0x2600–0x26FF) = 256 chars
+  for (let i = 0x2600; i <= 0x26FF; i++) syms.push(String.fromCharCode(i));
+
+  allSymbols = syms;
+  console.log("Generated symbols:", allSymbols.length); // should be ~7,500+
 }
 
-const allSymbols = generateSymbols();
-let dictToSymbol = {};
-let symbolToDict = {};
-let singleCharMap = {};
-let singleCharReverseMap = {};
 
 function buildDictionaryMappings() {
-  dictToSymbol = {};
-  symbolToDict = {};
+  dictToSymbol = {}; symbolToDict = {};
+  dictionaryPatterns.forEach((pattern, i) => {
+    if (i < allSymbols.length) {
+      dictToSymbol[pattern] = allSymbols[i];
+      symbolToDict[allSymbols[i]] = pattern;
+    }
+  });
   
-  // Assign symbols to dictionary patterns
-  for (let i = 0; i < dictionaryPatterns.length && i < allSymbols.length; i++) {
-    const pattern = dictionaryPatterns[i];
-    const sym = allSymbols[i];
-    dictToSymbol[pattern] = sym;
-    symbolToDict[sym] = pattern;
-  }
-  
-  // Assign symbols to individual characters for better compression
-  singleCharMap = {};
-  singleCharReverseMap = {};
-  
+  singleCharMap = {}; singleCharReverseMap = {};
   for (let i = 0; i < normalAlphabet.length; i++) {
-    const symbolIndex = i + dictionaryPatterns.length;
-    if (symbolIndex < allSymbols.length) {
-      const char = normalAlphabet[i];
-      const sym = allSymbols[symbolIndex];
-      singleCharMap[char] = sym;
-      singleCharReverseMap[sym] = char;
+    const symIdx = i + dictionaryPatterns.length;
+    if (symIdx < allSymbols.length) {
+      singleCharMap[normalAlphabet[i]] = allSymbols[symIdx];
+      singleCharReverseMap[allSymbols[symIdx]] = normalAlphabet[i];
     }
   }
 }
-
-buildDictionaryMappings();
 
 function makeRngFromKey(key) {
   let hash = 2166136261;
-  for (const ch of key) {
+  for (const ch of (key || "default")) {
     hash ^= ch.charCodeAt(0);
     hash = Math.imul(hash, 16777619);
   }
-  return function() {
+  return () => {
     hash ^= hash << 13; hash ^= hash >> 17; hash ^= hash << 5;
     return (hash >>> 0) / 4294967296;
+  };
+}
+
+function shuffleWithKey(array, key) {
+  const rng = makeRngFromKey(key);
+  const a = array.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
   }
+  return a;
 }
 
 function shuffleMapping(key) {
-  const rng = makeRngFromKey(key || "default-static-seed");
-  
-  // Create arrays from the mappings for shuffling
-  const dictPatterns = Object.keys(dictToSymbol);
-  const dictSymbols = dictPatterns.map(pattern => dictToSymbol[pattern]);
-  
-  const singleChars = Object.keys(singleCharMap);
-  const singleSymbols = singleChars.map(char => singleCharMap[char]);
-  
-  // Fisher-Yates shuffle for dictionary mappings
-  for (let i = dictPatterns.length - 1; i > 0; i--) {
-    const j = Math.floor(rng() * (i + 1));
-    [dictPatterns[i], dictPatterns[j]] = [dictPatterns[j], dictPatterns[i]];
-    [dictSymbols[i], dictSymbols[j]] = [dictSymbols[j], dictSymbols[i]];
-  }
-  
-  // Fisher-Yates shuffle for single character mappings
-  for (let i = singleChars.length - 1; i > 0; i--) {
-    const j = Math.floor(rng() * (i + 1));
-    [singleChars[i], singleChars[j]] = [singleChars[j], singleChars[i]];
-    [singleSymbols[i], singleSymbols[j]] = [singleSymbols[j], singleSymbols[i]];
-  }
-  
-  // Rebuild mappings
+  // deterministic shuffle of allSymbols based on key
+  const shuffled = shuffleWithKey(allSymbols, key);
+
+  // assign to dictionary patterns
   dictToSymbol = {};
   symbolToDict = {};
-  for (let i = 0; i < dictPatterns.length; i++) {
-    dictToSymbol[dictPatterns[i]] = dictSymbols[i];
-    symbolToDict[dictSymbols[i]] = dictPatterns[i];
-  }
-  
+  dictionaryPatterns.forEach((p, i) => {
+    dictToSymbol[p] = shuffled[i];
+    symbolToDict[shuffled[i]] = p;
+  });
+
+  // assign the rest to single chars
   singleCharMap = {};
   singleCharReverseMap = {};
-  for (let i = 0; i < singleChars.length; i++) {
-    singleCharMap[singleChars[i]] = singleSymbols[i];
-    singleCharReverseMap[singleSymbols[i]] = singleChars[i];
+  for (let i = 0; i < normalAlphabet.length; i++) {
+    singleCharMap[normalAlphabet[i]] = shuffled[i + dictionaryPatterns.length];
+    singleCharReverseMap[shuffled[i + dictionaryPatterns.length]] = normalAlphabet[i];
   }
 }
+
 
 function encrypt(text, key) {
-  // Shuffle mappings based on key
-  shuffleMapping(key);
-  
+  shuffleMapping(key); // deterministic shuffle with key
   let output = [];
-  let currentIndex = 0;
-  
-  while (currentIndex < text.length) {
-    let matchedPattern = null;
-    
-    // Look for the longest matching pattern from the dictionary
-    for (let pattern of dictionaryPatterns) {
-      if (currentIndex + pattern.length <= text.length && 
-          text.substring(currentIndex, currentIndex + pattern.length) === pattern) {
-        matchedPattern = pattern;
-        break;
+  let i = 0;
+
+  while (i < text.length) {
+    let match = null;
+
+    // find the longest matching pattern starting at position i
+    for (const pattern of dictionaryPatterns) {
+      if (text.startsWith(pattern, i)) {
+        match = pattern;
+        break; // stop at first match because dictionary is sorted longest-first
       }
     }
-    
-    if (matchedPattern) {
-      // Use dictionary mapping
-      output.push(dictToSymbol[matchedPattern]);
-      currentIndex += matchedPattern.length;
+
+    if (match) {
+      output.push(dictToSymbol[match]);
+      i += match.length; // jump over the matched pattern
     } else {
-      // Encode single character
-      const currentChar = text[currentIndex];
-      
-      if (currentChar in singleCharMap) {
-        // Use single character mapping
-        output.push(singleCharMap[currentChar]);
-      } else {
-        // Character not in normalAlphabet, output as-is
-        output.push(currentChar);
-      }
-      
-      currentIndex++;
+      // fallback to single character map
+      output.push(singleCharMap[text[i]] || text[i]);
+      i++;
     }
   }
-  
+
   return output.join('');
 }
+
 
 function decrypt(text, key) {
-  // Shuffle mappings based on key (must be same as encryption)
   shuffleMapping(key);
-  
-  let output = [];
-  let symbols = Array.from(text);
-  
-  for (let i = 0; i < symbols.length; i++) {
-    const symbol = symbols[i];
-    
-    // First check if it's a dictionary pattern
-    if (symbolToDict[symbol]) {
-      output.push(symbolToDict[symbol]);
-    } 
-    // Then check if it's a single character mapping
-    else if (singleCharReverseMap[symbol]) {
-      output.push(singleCharReverseMap[symbol]);
-    }
-    // Otherwise output symbol as-is
-    else {
-      output.push(symbol);
-    }
-  }
-  
-  return output.join('');
+  return Array.from(text).map(s => symbolToDict[s] || singleCharReverseMap[s] || s).join('');
 }
 
-let isUpdating = false;
-
 function updateStats() {
-  const origLen = originalBox.value.length;
-  const encLen = encryptedBox.value.length;
-  
-  originalCount.textContent = `${origLen} character${origLen !== 1 ? 's' : ''}`;
-  encryptedCount.textContent = `${encLen} character${encLen !== 1 ? 's' : ''}`;
-  
-  if (origLen > 0) {
-    const savings = Math.round((1 - (encLen / origLen)) * 100);
-    const reduction = origLen - encLen;
-    
-    if (reduction < 0 || savings < 0) {
-      compressionValue.textContent = `${Math.abs(savings)}%`;
-      compressionValue.className = 'stat-value negative';
-      reductionValue.textContent = `+${Math.abs(reduction)}`;
-      reductionValue.className = 'stat-value negative';
-    } else {
-      compressionValue.textContent = `${savings}%`;
-      compressionValue.className = 'stat-value positive';
-      reductionValue.textContent = `−${reduction}`;
-      reductionValue.className = 'stat-value positive';
-    }
-  } else {
-    compressionValue.textContent = '0%';
-    compressionValue.className = 'stat-value neutral';
-    reductionValue.textContent = '0';
-    reductionValue.className = 'stat-value neutral';
+  const oLen = originalBox.value.length;
+  const eLen = encryptedBox.value.length;
+  originalCount.textContent = oLen;
+  encryptedCount.textContent = eLen;
+  if (oLen > 0) {
+    compressionValue.textContent = Math.round((1 - (eLen / oLen)) * 100) + "%";
+    reductionValue.textContent = oLen - eLen;
   }
 }
 
 function updateFromOriginal() {
   if (isUpdating) return;
-  
-  try {
-    isUpdating = true;
-    const encrypted = encrypt(originalBox.value, keyBox.value);
-    encryptedBox.value = encrypted;
-    updateStats();
-  } catch (error) {
-    console.error("Encryption error:", error);
-  } finally {
-    isUpdating = false;
-  }
+  isUpdating = true;
+  encryptedBox.value = encrypt(originalBox.value, keyBox.value);
+  updateStats();
+  isUpdating = false;
 }
 
 function updateFromEncrypted() {
   if (isUpdating) return;
-  
-  try {
-    isUpdating = true;
-    const decrypted = decrypt(encryptedBox.value, keyBox.value);
-    originalBox.value = decrypted;
-    updateStats();
-  } catch (error) {
-    console.error("Decryption error:", error);
-  } finally {
-    isUpdating = false;
-  }
+  isUpdating = true;
+  originalBox.value = decrypt(encryptedBox.value, keyBox.value);
+  updateStats();
+  isUpdating = false;
 }
 
-originalBox.addEventListener("input", updateFromOriginal);
-encryptedBox.addEventListener("input", updateFromEncrypted);
-keyBox.addEventListener("input", updateFromOriginal);
-
-window.addEventListener('load', () => {
-  updateFromOriginal();
-});
+init();
 </script>
 </body>
 </html>
