@@ -274,37 +274,49 @@ const encryptedCount = document.getElementById("encryptedCount");
 const compressionValue = document.getElementById("compressionValue");
 const reductionValue = document.getElementById("reductionValue");
 
-// Standard Alphabet
+// Enhanced Alphabet with more symbols for encoding
 const normalAlphabet = 
   "abcdefghijklmnopqrstuvwxyz" +
   "ABCDEFGHIJKLMNOPQRSTUVWXYZ" +
   "0123456789" +
   " .,!?:;'\"-_=+()[]{}<>/@#$%&*\\|^~`\n";
 
-// Expanded Dictionary
+// Enhanced Dictionary with more patterns for better compression
 const baseWords = [
-  "of the","in the","to the","for the","on the","at the","from the","with the","by the","and the",
-  "that the","is the","as the","was the","are the","it is","there is","there are","this is",
-  "it was","I am","you are","we are","they are","he is","she is","I have","you have","we have",
-  "they have","I will","you will","we will","they will","do not","does not","did not","is not",
-  "are not","was not","were not","have not","has not","had not","will not","would not","should not",
-  "could not","cannot","can not","I would","you would","he would","she would","we would","they would",
-  "the ","be ","to ","of ","and ","a ","in ","that ","have ","I ","it ","for ","not ","on ","with ",
-  "he ","as ","you ","do ","at ","this ","but ","his ","by ","from ","they ","we ","say ","her ","she ",
-  "or ","an ","will ","my ","one ","all ","would ","there ","their ","what ","so ","up ","out ","if ",
-  "about ","who ","get ","which ","go ","me ","when ","make ","can ","like ","time ","no ","just ","him ",
-  "the","be","to","of","and","a","in","that","have","it","for","not","on","with","he","as","you",
-  "do","at","this","but","his","by","from","they","we","say","her","she","or","an","will","my","one",
-  "all","would","there","their","what","so","up","out","if","about","who","get","which","go","me","when",
-  "going","coming","taking","making","getting","seeing","looking","thinking","working","trying",
-  "time","person","year","way","day","thing","man","world","life","hand","part","child","eye","woman",
-  "good","new","first","last","long","great","little","own","other","old","right","big","high",
-  "th","he","in","er","an","re","nd","at","on","nt","ha","es","st","en","ed","to","it","ou","ea","hi",
-  "ing ","tion ","ment ","able ","ful ","less ","ly ","ing","tion","ment","able","ful","less","ly",
-  "The ","In ","It ","This ","That ","There ","What ","When ","Where ","Why ","How ","Who ",
-  "don't","doesn't","didn't","isn't","aren't","wasn't","weren't","haven't","hasn't","hadn't",
-  "won't","wouldn't","shouldn't","couldn't","can't","I'm","I've","I'll","you're","you've",
-  ". ",", ","; ",": ","! ","? ",
+  // Common word pairs (bigrams)
+  "the", "and", "ing", "ion", "tio", "ent", "ati", "for", "her", "ter", 
+  "hat", "tha", "ere", "ate", "his", "con", "res", "ver", "all", "ons",
+  "nce", "men", "ith", "ted", "ers", "pro", "thi", "wit", "are", "ess",
+  "not", "ive", "was", "ect", "rea", "com", "eve", "per", "int", "est",
+  "sta", "cti", "ica", "ist", "ear", "ain", "one", "our", "iti", "rat",
+  
+  // Common phrases and words
+  "of the", "in the", "to the", "for the", "on the", "at the", "from the", "with the", "by the", "and the",
+  "that the", "is the", "as the", "was the", "are the", "it is", "there is", "there are", "this is",
+  "it was", "I am", "you are", "we are", "they are", "he is", "she is", "I have", "you have", "we have",
+  "they have", "I will", "you will", "we will", "they will", "do not", "does not", "did not", "is not",
+  "are not", "was not", "were not", "have not", "has not", "had not", "will not", "would not", "should not",
+  "could not", "cannot", "can not", "I would", "you would", "he would", "she would", "we would", "they would",
+  
+  // Single letters with space
+  "a ", "b ", "c ", "d ", "e ", "f ", "g ", "h ", "i ", "j ", "k ", "l ", "m ",
+  "n ", "o ", "p ", "q ", "r ", "s ", "t ", "u ", "v ", "w ", "x ", "y ", "z ",
+  "A ", "B ", "C ", "D ", "E ", "F ", "G ", "H ", "I ", "J ", "K ", "L ", "M ",
+  "N ", "O ", "P ", "Q ", "R ", "S ", "T ", "U ", "V ", "W ", "X ", "Y ", "Z ",
+  
+  // Common punctuation patterns
+  ". ", ", ", "; ", ": ", "! ", "? ", " - ", " (", ") ", "[ ", "] ", "{ ", "} ", 
+  " '", "' ", " \"", "\" ", " `", "` ", " /", "\\ ", " |", " @", " #", " $", " %",
+  
+  // Common pairs/suffixes
+  "ed ", "ing ", "ly ", "ment", "able", "tion", "ness", "less", "ful", "ive",
+  "al ", "ic ", "ous", "ive", "ent", "ant", "ance", "ence", "ity", "ship",
+  
+  // Fixed-length encodings for common prefixes/suffixes
+  "un", "re", "dis", "pre", "post", "anti", "sub", "over", "under", "super",
+  
+  // Special cases
+  "the ", "and ", "for ", "you", "with", "this", "that", "have", "from", "they"
 ];
 
 let dictionaryPatterns = [];
@@ -312,52 +324,88 @@ function addToDict(str) {
   if (!dictionaryPatterns.includes(str)) dictionaryPatterns.push(str);
 }
 baseWords.forEach(word => addToDict(word));
-"aAbBcCdDeEfFgGhHiIjJkKlLmMnNoOpPqQrRsStTuUvVwWxXyYzZ".split('').forEach(l => addToDict(l + " "));
 dictionaryPatterns.sort((a, b) => b.length - a.length);
 
-// Generate Symbol Pool
+// Enhanced Symbol Pool with more characters
 function generateSymbols() {
   let syms = [];
-  for(let i=0x4DC0; i<=0x4DFF; i++) syms.push(String.fromCharCode(i));
-  for(let i=0x2801; i<=0x28FF; i++) syms.push(String.fromCharCode(i));
+  
+  // Tibetan characters (compact)
+  for(let i=0x0F00; i<=0x0FFF; i++) syms.push(String.fromCharCode(i));
+  
+  // Mathematical Operators
+  for(let i=0x2200; i<=0x22FF; i++) syms.push(String.fromCharCode(i));
+  
+  // Geometric Shapes
+  for(let i=0x25A0; i<=0x25FF; i++) syms.push(String.fromCharCode(i));
+  
+  // Box Drawing
+  for(let i=0x2500; i<=0x257F; i++) syms.push(String.fromCharCode(i));
+  
+  // Miscellaneous Symbols
+  for(let i=0x2600; i<=0x26FF; i++) syms.push(String.fromCharCode(i));
+  
+  // Dingbats
+  for(let i=0x2700; i<=0x27BF; i++) syms.push(String.fromCharCode(i));
+  
+  // Supplemental Arrows
+  for(let i=0x2900; i<=0x297F; i++) syms.push(String.fromCharCode(i));
+  
+  // Braille Patterns 
+  for(let i=0x2800; i<=0x28FF; i++) syms.push(String.fromCharCode(i));
+  
+  // Additional symbols
   for(let i=0x4E00; i<=0x4FE0; i+=2) syms.push(String.fromCharCode(i));
-  syms.push(..."█▓▒░▌▐▀▄■□▢▣▤▥▦▧▨▩▪▫▬▭▮▯▰▱▲△▴▵▶▷▸▹►▻▼▽▾▿◀◁◂◃◄◅");
-  syms.push(..."◆◇◈◊●○◌◎◍◐◑◒◓◔◕◖◗◘◙◚◛◜◝◞◟◠◡◢◣◤◥◦◧◨◩◪◫◬◭◮◯");
-  syms.push(..."─━│┃┄┅┆┇┈┉┊┋┌┍┎┏┐┑┒┓└┕┖┗┘┙┚┛├┝┞┟┠┡┢┣┤┥┦┧┨┩┪┫┬┭┮┯┰┱┲┳┴┵┶┷┸┹┺┻┼┽┾┿╀╁╂╃╄╅╆╇╈╉╊╋");
-  syms.push(..."∀∁∂∃∄∅∆∇∈∉∊∋∌∍∎∏∐∑−∓∔∕∖∗∘∙√∛∜∝∞∟∠∡∢∣∤∥∦∧∨∩∪∫∬∭∮∯∰∱∲∳∴∵∶∷∸∹∺∻∼∽∾∿");
-  syms.push(..."←↑→↓↔↕↖↗↘↙↚↛↜↝↞↟↠↡↢↣↤↥↦↧↨↩↪↫↬↭↮↯↰↱↲↳↴↵↶↷↸↹↺↻↼↽↾↿⇀⇁⇂⇃⇄⇅⇆⇇⇈⇉⇊⇋⇌⇍⇎⇏");
-  syms.push(..."☀☁☂☃☄★☆☇☈☉☊☋☌☍☎☏☐☑☒☓☔☕☖☗☘☙☚☛☜☝☞☟☠☡☢☣☤☥☦☧☨☩☪☫☬☭☮☯☰☱☲☳☴☵☶☷");
-  syms.push(..."✁✂✃✄✅✆✇✈✉✊✋✌✍✎✏✐✑✒✓✔✕✖✗✘✙✚✛✜✝✞✟✠✡✢✣✤✥✦✧✨✩✪✫✬✭✮✯✰✱✲✳✴✵✶✷✸✹✺✻✼✽✾✿❀❁❂❃❄❅❆❇❈❉❊❋");
-  for(let i=0x5000; i<=0x51E0; i+=2) syms.push(String.fromCharCode(i));
-  for(let i=0x3040; i<=0x309F; i++) syms.push(String.fromCharCode(i));
-  for(let i=0x30A0; i<=0x30FF; i++) syms.push(String.fromCharCode(i));
-  for(let i=0x0391; i<=0x03C9; i++) syms.push(String.fromCharCode(i));
+  
+  // Cyrillic Extended
+  for(let i=0x2DE0; i<=0x2DFF; i++) syms.push(String.fromCharCode(i));
+  
+  // Ensure enough symbols for compression
+  syms.push(..."∀∁∂∃∄∅∆∇∈∉∊∋∌∍∎∏∐∑−∓∔∕∖∗∘∙√∛∜∝∞∟∠∡∢∣∤∥∦∧∨∩∪∫∬∭∮∯∰∱∲∳∴∵∶∷∸∹∺∻∼∽∾∿≀≁≂≃≄≅≆≇≈≉≊≋≌≍≎≏≐≑≒≓≔≕≖≗≘≙≚≛≜≝≞≟≠≡≢≣≤≥≦≧≨≩≪≫≬≭≮≯≰≱≲≳≴≵≶≷≸≹≺≻≼≽≾≿⊀⊁⊂⊃⊄⊅⊆⊇⊈⊉⊊⊋⊌⊍⊎⊏⊐⊑⊒⊓⊔⊕⊖⊗⊘⊙⊚⊛⊜⊝⊞⊟⊠⊡⊢⊣⊤⊥⊦⊧⊨⊩⊪⊫⊬⊭⊮⊯⊰⊱⊲⊳⊴⊵⊶⊷⊸⊹⊺⊻⊼⊽⊾⊿⋀⋁⋂⋃⋄⋅⋆⋇⋈⋉⋊⋋⋌⋍⋎⋏⋐⋑⋒⋓⋔⋕⋖⋗⋘⋙⋚⋛⋜⋝⋞⋟⋠⋡⋢⋣⋤⋥⋦⋧⋨⋩⋪⋫⋬⋭⋮⋯⋰⋱");
+  
+  // Greek and Coptic
+  for(let i=0x0370; i<=0x03FF; i++) syms.push(String.fromCharCode(i));
+  
+  // Enclosed Alphanumerics
+  for(let i=0x2460; i<=0x24FF; i++) syms.push(String.fromCharCode(i));
+  
   return syms;
 }
 
 const allSymbols = generateSymbols();
 let dictToSymbol = {};
 let symbolToDict = {};
-let singleCharPool = [];
+let singleCharMap = {};
+let singleCharReverseMap = {};
 
-function initializeMaps() {
+function buildDictionaryMappings() {
   dictToSymbol = {};
   symbolToDict = {};
-  let symIndex = 0;
   
-  for (let pattern of dictionaryPatterns) {
-    if (symIndex < allSymbols.length) {
-      const sym = allSymbols[symIndex];
-      dictToSymbol[pattern] = sym;
-      symbolToDict[sym] = pattern;
-      symIndex++;
-    }
+  // Assign symbols to dictionary patterns
+  for (let i = 0; i < dictionaryPatterns.length && i < allSymbols.length; i++) {
+    const pattern = dictionaryPatterns[i];
+    const sym = allSymbols[i];
+    dictToSymbol[pattern] = sym;
+    symbolToDict[sym] = pattern;
   }
   
-  singleCharPool = allSymbols.slice(symIndex);
+  // Assign symbols to individual characters for better compression
+  singleCharMap = {};
+  singleCharReverseMap = {};
+  
+  for (let i = 0; i < normalAlphabet.length; i++) {
+    const symbolIndex = i + dictionaryPatterns.length;
+    if (symbolIndex < allSymbols.length) {
+      const char = normalAlphabet[i];
+      const sym = allSymbols[symbolIndex];
+      singleCharMap[char] = sym;
+      singleCharReverseMap[sym] = char;
+    }
+  }
 }
 
-initializeMaps();
+buildDictionaryMappings();
 
 function makeRngFromKey(key) {
   let hash = 2166136261;
@@ -371,89 +419,113 @@ function makeRngFromKey(key) {
   }
 }
 
-function buildCipher(key) {
+function shuffleMapping(key) {
   const rng = makeRngFromKey(key || "default-static-seed");
-  const a = singleCharPool.slice();
-  for (let i = a.length - 1; i > 0; i--) {
+  
+  // Create arrays from the mappings for shuffling
+  const dictPatterns = Object.keys(dictToSymbol);
+  const dictSymbols = dictPatterns.map(pattern => dictToSymbol[pattern]);
+  
+  const singleChars = Object.keys(singleCharMap);
+  const singleSymbols = singleChars.map(char => singleCharMap[char]);
+  
+  // Fisher-Yates shuffle for dictionary mappings
+  for (let i = dictPatterns.length - 1; i > 0; i--) {
     const j = Math.floor(rng() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
+    [dictPatterns[i], dictPatterns[j]] = [dictPatterns[j], dictPatterns[i]];
+    [dictSymbols[i], dictSymbols[j]] = [dictSymbols[j], dictSymbols[i]];
   }
-  return a;
+  
+  // Fisher-Yates shuffle for single character mappings
+  for (let i = singleChars.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1));
+    [singleChars[i], singleChars[j]] = [singleChars[j], singleChars[i]];
+    [singleSymbols[i], singleSymbols[j]] = [singleSymbols[j], singleSymbols[i]];
+  }
+  
+  // Rebuild mappings
+  dictToSymbol = {};
+  symbolToDict = {};
+  for (let i = 0; i < dictPatterns.length; i++) {
+    dictToSymbol[dictPatterns[i]] = dictSymbols[i];
+    symbolToDict[dictSymbols[i]] = dictPatterns[i];
+  }
+  
+  singleCharMap = {};
+  singleCharReverseMap = {};
+  for (let i = 0; i < singleChars.length; i++) {
+    singleCharMap[singleChars[i]] = singleSymbols[i];
+    singleCharReverseMap[singleSymbols[i]] = singleChars[i];
+  }
 }
 
 function encrypt(text, key) {
-  const shuffledPool = buildCipher(key);
-  const shifts = [...(key || "default")].map(c => c.charCodeAt(0));
-  let out = "";
-  let idx = 0; 
+  // Shuffle mappings based on key
+  shuffleMapping(key);
   
-  while (idx < text.length) {
+  let output = [];
+  let currentIndex = 0;
+  
+  while (currentIndex < text.length) {
     let matchedPattern = null;
     
+    // Look for the longest matching pattern from the dictionary
     for (let pattern of dictionaryPatterns) {
-      if (pattern.length > text.length - idx) continue;
-      if (text.substr(idx, pattern.length) === pattern) {
+      if (currentIndex + pattern.length <= text.length && 
+          text.substring(currentIndex, currentIndex + pattern.length) === pattern) {
         matchedPattern = pattern;
         break;
       }
     }
-
+    
     if (matchedPattern) {
-      out += dictToSymbol[matchedPattern];
-      idx += matchedPattern.length;
+      // Use dictionary mapping
+      output.push(dictToSymbol[matchedPattern]);
+      currentIndex += matchedPattern.length;
     } else {
-      const ch = text[idx];
-      const alphIdx = normalAlphabet.indexOf(ch);
+      // Encode single character
+      const currentChar = text[currentIndex];
       
-      if (alphIdx === -1) {
-        out += ch; 
+      if (currentChar in singleCharMap) {
+        // Use single character mapping
+        output.push(singleCharMap[currentChar]);
       } else {
-        const k = shifts.length ? shifts[idx % shifts.length] : 0;
-        const cipherIndex = (alphIdx + k + idx) % shuffledPool.length;
-        out += shuffledPool[cipherIndex];
+        // Character not in normalAlphabet, output as-is
+        output.push(currentChar);
       }
-      idx++;
+      
+      currentIndex++;
     }
   }
-  return out;
+  
+  return output.join('');
 }
 
 function decrypt(text, key) {
-  const shuffledPool = buildCipher(key);
-  const shifts = [...(key || "default")].map(c => c.charCodeAt(0));
-  let out = "";
-  let idx = 0;
-  const symbols = Array.from(text);
+  // Shuffle mappings based on key (must be same as encryption)
+  shuffleMapping(key);
   
-  for (let s = 0; s < symbols.length; s++) {
-    const sym = symbols[s];
+  let output = [];
+  let symbols = Array.from(text);
+  
+  for (let i = 0; i < symbols.length; i++) {
+    const symbol = symbols[i];
     
-    if (symbolToDict[sym]) {
-      const phrase = symbolToDict[sym];
-      out += phrase;
-      idx += phrase.length;
-      continue;
+    // First check if it's a dictionary pattern
+    if (symbolToDict[symbol]) {
+      output.push(symbolToDict[symbol]);
+    } 
+    // Then check if it's a single character mapping
+    else if (singleCharReverseMap[symbol]) {
+      output.push(singleCharReverseMap[symbol]);
     }
-    
-    const poolIndex = shuffledPool.indexOf(sym);
-    if (poolIndex === -1) {
-      out += sym;
-      idx++;
-      continue;
+    // Otherwise output symbol as-is
+    else {
+      output.push(symbol);
     }
-    
-    const k = shifts.length ? shifts[idx % shifts.length] : 0;
-    let alphIdx = (poolIndex - k - idx) % shuffledPool.length;
-    while (alphIdx < 0) alphIdx += shuffledPool.length;
-    
-    if (alphIdx < normalAlphabet.length) {
-      out += normalAlphabet[alphIdx];
-    } else {
-      out += normalAlphabet[alphIdx % normalAlphabet.length];
-    }
-    idx++;
   }
-  return out;
+  
+  return output.join('');
 }
 
 let isUpdating = false;
@@ -469,7 +541,7 @@ function updateStats() {
     const savings = Math.round((1 - (encLen / origLen)) * 100);
     const reduction = origLen - encLen;
     
-    if (savings < 0) {
+    if (reduction < 0 || savings < 0) {
       compressionValue.textContent = `${Math.abs(savings)}%`;
       compressionValue.className = 'stat-value negative';
       reductionValue.textContent = `+${Math.abs(reduction)}`;
@@ -490,18 +562,32 @@ function updateStats() {
 
 function updateFromOriginal() {
   if (isUpdating) return;
-  isUpdating = true;
-  encryptedBox.value = encrypt(originalBox.value, keyBox.value);
-  updateStats();
-  isUpdating = false;
+  
+  try {
+    isUpdating = true;
+    const encrypted = encrypt(originalBox.value, keyBox.value);
+    encryptedBox.value = encrypted;
+    updateStats();
+  } catch (error) {
+    console.error("Encryption error:", error);
+  } finally {
+    isUpdating = false;
+  }
 }
 
 function updateFromEncrypted() {
   if (isUpdating) return;
-  isUpdating = true;
-  originalBox.value = decrypt(encryptedBox.value, keyBox.value);
-  updateStats();
-  isUpdating = false;
+  
+  try {
+    isUpdating = true;
+    const decrypted = decrypt(encryptedBox.value, keyBox.value);
+    originalBox.value = decrypted;
+    updateStats();
+  } catch (error) {
+    console.error("Decryption error:", error);
+  } finally {
+    isUpdating = false;
+  }
 }
 
 originalBox.addEventListener("input", updateFromOriginal);
