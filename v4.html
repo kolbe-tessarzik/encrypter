@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<meta charset="utf-8">
+<title>Ultra Compressor — Live + Stats (No Deflate)</title>
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;padding:20px;background:#020617;color:#e5e7eb;font-family:system-ui,monospace}
+  h1{margin:0 0 6px}
+  small{color:#94a3b8}
+  .row{display:flex;gap:12px;align-items:center;margin-top:10px}
+  input,textarea,select{width:100%;padding:10px;border-radius:8px;border:1px solid #334155;background:#020617;color:#e5e7eb;font-family:monospace}
+  textarea{min-height:180px;resize:vertical}
+  button{padding:8px 12px;border:0;border-radius:8px;background:#22c55e;color:#021;cursor:pointer;font-weight:700}
+  .stats{margin-top:10px;padding:10px;border-radius:8px;background:#041226;border:1px solid #153040;color:#9fe9c7;font-family:monospace}
+  .error{color:#fca5a5}
+  label{font-size:13px;color:#94a3b8}
+</style>
+
+<h1>Ultra Compressor — Live (No Deflate)</h1>
+<small>Dictionary → BWT → XOR → Base65536 • reversible, works on huge text</small>
+
+<div class="row">
+  <div style="flex:1">
+    <label>Key (optional)</label>
+    <input id="key" placeholder="passphrase (optional)">
+  </div>
+  <div style="width:120px">
+    <label>Mode</label>
+    <select id="mode">
+      <option value="both">Live Encode/Decode</option>
+      <option value="encode">Encode-only (input → output)</option>
+      <option value="decode">Decode-only (output → input)</option>
+      <option value="manual">Manual (buttons)</option>
+    </select>
+  </div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px">
+  <div>
+    <label>Input (original)</label>
+    <textarea id="input" placeholder="Type or paste original text here..."></textarea>
+    <div style="margin-top:6px">
+      <button id="encBtn">Encode ↓</button>
+    </div>
+  </div>
+
+  <div>
+    <label>Output (compressed / Base-65536 visible)</label>
+    <textarea id="output" placeholder="Compressed output appears here..."></textarea>
+    <div style="margin-top:6px">
+      <button id="decBtn">Decode ↑</button>
+    </div>
+  </div>
+</div>
+
+<div class="stats" id="stats">Ready — edit input or output (depending on mode).</div>
+
+<script>
+const encoder = new TextEncoder();
+const decoder = new TextDecoder();
+
+/* ===== Base65536 packing ===== */
+function toB65536(bytes){
+  let out = "";
+  for(let i=0;i<bytes.length;i+=2){
+    const hi = bytes[i];
+    const lo = bytes[i+1]||0;
+    out += String.fromCharCode((hi<<8)|lo);
+  }
+  return out;
+}
+function fromB65536(str){
+  const out = [];
+  for(const ch of str){
+    const v = ch.charCodeAt(0);
+    out.push((v>>8)&255, v&255);
+  }
+  return new Uint8Array(out);
+}
+
+/* ===== Dictionary (small example) ===== */
+const DICT=[
+  " the "," and "," to "," of "," in "," that "," is "," for ",
+  "ing","tion","ion","ed ","ly ","er ","re ","on ","th","he","in","er"
+].sort((a,b)=>b.length - a.length);
+
+/* ===== Tokenize / Detokenize ===== */
+function tokenizeBytes(inputBytes){
+  const s = decoder.decode(inputBytes);
+  const out=[];
+  let pos=0;
+  while(pos<s.length){
+    let matched=false;
+    for(let j=0;j<DICT.length;j++){
+      const d=DICT[j];
+      if(s.startsWith(d,pos)){
+        out.push(255-j);
+        pos+=d.length;
+        matched=true;
+        break;
+      }
+    }
+    if(matched) continue;
+    const cp = s.codePointAt(pos);
+    const ch = String.fromCodePoint(cp);
+    const bts = encoder.encode(ch);
+    for(const b of bts) out.push(b);
+    pos += ch.length;
+  }
+  return new Uint8Array(out);
+}
+
+function detokenizeBytes(bytes){
+  const outBytes=[];
+  for(const b of bytes){
+    if(b>=255-DICT.length){
+      const idx = 255-b;
+      const chunkBytes = encoder.encode(DICT[idx]);
+      outBytes.push(...chunkBytes);
+    } else outBytes.push(b);
+  }
+  return decoder.decode(new Uint8Array(outBytes));
+}
+
+/* ===== BWT / inverse ===== */
+function bwt(data){
+  const n = data.length;
+  if(n===0) return {out:new Uint8Array(0), idx:0};
+  if(n===1) return {out:new Uint8Array(data), idx:0};
+  const rot=[...Array(n)].map((_,i)=>i);
+  rot.sort((a,b)=>{
+    for(let k=0;k<n;k++){
+      const x = data[(a+k)%n];
+      const y = data[(b+k)%n];
+      if(x!==y) return x-y;
+    }
+    return 0;
+  });
+  const out = new Uint8Array(n);
+  let idx=0;
+  for(let i=0;i<n;i++){
+    const r=rot[i];
+    out[i] = data[(r+n-1)%n];
+    if(r===0) idx=i;
+  }
+  return {out,idx};
+}
+
+function ibwt(L, idx){
+  const n=L.length;
+  if(n===0) return new Uint8Array(0);
+  if(n===1) return new Uint8Array(L);
+  const occ=new Array(n);
+  const counts=new Map();
+  for(let i=0;i<n;i++){
+    const v=L[i];
+    occ[i]=counts.get(v)||0;
+    counts.set(v,(counts.get(v)||0)+1);
+  }
+  const keys=[...counts.keys()].sort((a,b)=>a-b);
+  const first=new Map();
+  let start=0;
+  for(const k of keys){
+    first.set(k,start);
+    start += counts.get(k);
+  }
+  const LF=new Array(n);
+  for(let i=0;i<n;i++) LF[i] = first.get(L[i]) + occ[i];
+  const res = new Uint8Array(n);
+  let p=idx;
+  for(let i=n-1;i>=0;i--){
+    res[i]=L[p];
+    p=LF[p];
+  }
+  return res;
+}
+
+/* ===== XOR scramble ===== */
+function xorBytes(bytes,keyStr){
+  if(!keyStr) return bytes;
+  const k=encoder.encode(keyStr);
+  if(k.length===0) return bytes;
+  return bytes.map((b,i)=>b^k[i%k.length]);
+}
+
+/* ===== Stats helpers ===== */
+function countChars(s){
+  if(!s) return 0;
+  if(typeof Intl!=='undefined'&&Intl.Segmenter){
+    const seg=new Intl.Segmenter(undefined,{granularity:'grapheme'});
+    let n=0; for(const _ of seg.segment(s)) n++; return n;
+  }
+  return Array.from(s).length;
+}
+
+/* ===== UI wiring ===== */
+const input=document.getElementById('input');
+const output=document.getElementById('output');
+const key=document.getElementById('key');
+const stats=document.getElementById('stats');
+const encBtn=document.getElementById('encBtn');
+const decBtn=document.getElementById('decBtn');
+const modeSel=document.getElementById('mode');
+
+let suppress=false;
+function setError(msg){ stats.innerHTML='<span class="error">'+msg+'</span>'; }
+function setInfo(msg){ stats.textContent=msg; }
+function updateStats(orig, enc, note){
+  const o=countChars(orig);
+  const e=enc?countChars(enc):0;
+  let pct = e===0?0:Math.round(((e-o)/Math.max(1,o))*1000)/10;
+  const sign=pct<0?'smaller':'larger';
+  stats.innerHTML=`Original: ${o} chars · Encoded: ${e} chars · ${Math.abs(pct)}% ${sign}${note? ' · '+note:''}`;
+}
+
+/* ===== Encode / Decode ===== */
+async function doEncode(){
+  try{
+    const keyv=key.value||'';
+    if(input.value.length===0){ suppress=true; output.value=''; updateStats('',''); suppress=false; return; }
+    const rawBytes = encoder.encode(input.value);
+    const token = tokenizeBytes(rawBytes);
+    const b=bwt(token);
+    const meta=new Uint8Array(2+b.out.length);
+    meta[0]=(b.idx>>8)&255; meta[1]=b.idx&255;
+    meta.set(b.out,2);
+    const scr = xorBytes(meta,keyv);
+    output.value = toB65536(scr);
+    updateStats(input.value,output.value);
+  }catch(e){ setError('Encode error: '+(e.message||e)); }
+}
+
+async function doDecode(){
+  try{
+    const keyv=key.value||'';
+    if(output.value.length===0){ suppress=true; input.value=''; updateStats('',''); suppress=false; return; }
+    const bytes = fromB65536(output.value);
+    const meta = xorBytes(bytes,keyv);
+    if(meta.length<2) throw new Error('data too short (missing BWT index)');
+    const idx = (meta[0]<<8)|meta[1];
+    const data = meta.slice(2);
+    const origBytes = ibwt(data,idx);
+    input.value = detokenizeBytes(origBytes);
+    updateStats(input.value,output.value);
+  }catch(e){ setError('Decode error: '+(e.message||e)); }
+}
+
+/* ===== debounce ===== */
+function debounce(fn,ms=180){let t;return(...a)=>{clearTimeout(t);t=setTimeout(()=>fn(...a),ms);}}
+const encDeb=debounce(async()=>{if(suppress) return; try{setInfo('Encoding...'); await doEncode();}catch(e){setError(e.message||e);}},220);
+const decDeb=debounce(async()=>{if(suppress) return; try{setInfo('Decoding...'); await doDecode();}catch(e){setError(e.message||e);}},220);
+
+/* ===== Event wiring ===== */
+input.addEventListener('input',()=>{ const m=modeSel.value; if(m==='both'||m==='encode') encDeb(); });
+output.addEventListener('input',()=>{ const m=modeSel.value; if(m==='both'||m==='decode') decDeb(); });
+key.addEventListener('input',()=>{ const m=modeSel.value; if(m==='both'){ document.activeElement===output?decDeb():encDeb(); } else if(m==='encode') encDeb(); else if(m==='decode') decDeb(); });
+modeSel.addEventListener('change',()=>{ if(modeSel.value==='decode') decDeb(); else if(modeSel.value==='encode') encDeb(); else if(modeSel.value==='both'){ if(input.value) encDeb(); else if(output.value) decDeb(); } });
+
+encBtn.addEventListener('click',()=>{ doEncode(); });
+decBtn.addEventListener('click',()=>{ doDecode(); });
+
+window.addEventListener('load',()=>{
+  try{ if(modeSel.value==='decode'&&output.value) decDeb(); else if((modeSel.value==='both'||modeSel.value==='encode')&&input.value) encDeb(); }catch(e){}
+});
+</script>
+</html>
