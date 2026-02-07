@@ -90,7 +90,7 @@
     try {
       statsEl.textContent = "Encoding...";
       const key = keyEl.value || "";
-      const out = await window.encrypt(inputEl.value, key);
+      const out = "䀦" + (await window.encrypt(inputEl.value, key));
       outputEl.value = out;
       const o = inputEl.value.length;
       const e = out.length;
@@ -108,7 +108,8 @@
     try {
       statsEl.textContent = "Decoding...";
       const key = keyEl.value || "";
-      const out = await window.decrypt(outputEl.value, key);
+      const input = outputEl.value[0] == "䀦" ? outputEl.value.slice(1) : outputEl.value;
+      const out = (await window.decrypt(input, key));
       inputEl.value = out;
       statsEl.textContent = `Decoded length: ${out.length} chars`;
     } catch (err) {
