@@ -240,6 +240,14 @@ import pako from 'https://cdn.jsdelivr.net/npm/pako@2.1.0/dist/pako.esm.mjs';
     return out;
   }
 
+  // Explicit initialization hook for building the alphabet
+  function initAlphabet() {
+    if (!BLOCK_CHARS) BLOCK_CHARS = buildBlockChars();
+    return BLOCK_CHARS.length;
+  }
+
+  initAlphabet();
+
   window.encrypt = (text, key) => {
     if (text == "") {
       return "";

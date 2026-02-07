@@ -51,7 +51,7 @@
   <!-- pako for compression -->
   <!-- <script src="https://cdn.jsdelivr.net/npm/pako@2.1.0/dist/pako.min.js"></script> -->
 
-  <script src="v5.js" type="module"></script>
+  <script src="v5.js" id="impl" type="module" defer></script>
   <script>
   // ----------------- UI wiring -----------------
   const inputEl = document.getElementById("input");
@@ -62,21 +62,20 @@
   const encBtn = document.getElementById("encodeBtn");
   const decBtn = document.getElementById("decodeBtn");
 
-  let suppress = false;
-  let initDone = false;
-
   // Build the charset (async to avoid blocking UI)
-  setTimeout(async () => {
+  window.addEventListener("load", async () => {
     loadingSpan.textContent = "building alphabet — this can take 1–3s depending on CPU";
     await new Promise(r => setTimeout(r, 50)); // let DOM update
-    // ensure alphabet is ready by forcing first encrypt call
-    await window.encrypt("", keyEl.value || "");
     loadingSpan.textContent = "alphabet ready";
     initDone = true;
     setTimeout(() => loadingSpan.remove(), 900);
     // try initial conversion if input exists
     if (inputEl.value) debouncedEncode();
-  }, 10);
+  });
+
+
+  let suppress = false;
+  let initDone = false;
 
   // debounce helpers
   function debounce(fn, ms = 220) {
@@ -120,16 +119,17 @@
   const debouncedEncode = debounce(doEncodeUI, 260);
   const debouncedDecode = debounce(doDecodeUI, 260);
 
+
+document.getElementById("impl").onload = () => {
   inputEl.addEventListener("input", debouncedEncode);
   outputEl.addEventListener("input", debouncedDecode);
   keyEl.addEventListener("input", () => { debouncedEncode(); debouncedDecode(); });
   encBtn.addEventListener("click", doEncodeUI);
   decBtn.addEventListener("click", doDecodeUI);
+}
 
-  // quick helper: try initial decode if output is prefilled
-  window.addEventListener("load", () => {
-    if (outputEl.value) debouncedDecode();
-    else if (inputEl.value) debouncedEncode();
+  document.addEventListener("DOMContentLoaded", () => {
+
   });
   </script>
 </body>
