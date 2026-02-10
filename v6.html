@@ -119,9 +119,14 @@
     document.addEventListener("alphabet-ready", markReady, { once: true });
     alphabetReady.then(markReady);
 
+    function reEncode() {
+      debouncedDecode();
+      debouncedEncode();
+    }
+
     inputEl.addEventListener("input", debouncedEncode);
     outputEl.addEventListener("input", debouncedDecode);
-    keyEl.addEventListener("input", () => { debouncedEncode(); debouncedDecode(); });
+    keyEl.addEventListener("input", reEncode);
     encBtn.addEventListener("click", doEncodeUI);
     decBtn.addEventListener("click", doDecodeUI);
 
@@ -135,7 +140,7 @@
       try {
         inputEl.removeEventListener("input", debouncedEncode);
         outputEl.removeEventListener("input", debouncedDecode);
-        keyEl.removeEventListener("input", () => { debouncedEncode(); debouncedDecode(); });
+        keyEl.removeEventListener("input", reEncode);
         encBtn.removeEventListener("click", doEncodeUI);
         decBtn.removeEventListener("click", doDecodeUI);
       } catch (e) {
