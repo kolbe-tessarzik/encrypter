@@ -42,9 +42,6 @@ function _signalAlphabetReady() {
     _alphabetReadyResolve();
     _alphabetReadyResolve = null;
   }
-  if (typeof document !== "undefined") {
-    document.dispatchEvent(new CustomEvent("alphabet-ready"));
-  }
 }
 async function sha256ToOffset(str, mod) {
   if (!str) return 0;
