@@ -511,6 +511,7 @@ try {
   _signalAlphabetReady();
 } catch (e) {
   console.error("Alphabet build failed", e);
+  throw e;
 }
 
 if (typeof window !== "undefined") {
