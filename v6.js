@@ -1,8 +1,5 @@
 import pako from 'https://cdn.jsdelivr.net/npm/pako@2.1.0/dist/pako.esm.mjs';
 
-(function () {
-  "use strict";
-
   /* --- CONFIGURATION --- */
 const STATIC_DICT = [
   " the "," and "," to "," of "," in "," that "," is "," for ",
@@ -36,6 +33,18 @@ function buildBlockChars() {
   }
   BLOCK_CHARS = out;
   return out;
+}
+
+let _alphabetReadyResolve = null;
+const alphabetReady = new Promise((resolve) => { _alphabetReadyResolve = resolve; });
+function _signalAlphabetReady() {
+  if (_alphabetReadyResolve) {
+    _alphabetReadyResolve();
+    _alphabetReadyResolve = null;
+  }
+  if (typeof document !== "undefined") {
+    document.dispatchEvent(new CustomEvent("alphabet-ready"));
+  }
 }
 async function sha256ToOffset(str, mod) {
   if (!str) return 0;
@@ -497,117 +506,24 @@ function xorBytesWithKey(u8, keyStr) {
   return out;
 }
 
-/* --- UI wiring (same as before, with updated functions) --- */
-const inputEl = document.getElementById("input");
-const outputEl = document.getElementById("output");
-const keyEl = document.getElementById("key");
-const statsEl = document.getElementById("stats");
-const loadingSpan = document.getElementById("loading");
-const encBtn = document.getElementById("encodeBtn");
-const decBtn = document.getElementById("decodeBtn");
+if (typeof window !== "undefined") {
+  window.addEventListener("load", () => {
+    try {
+      buildBlockChars();
+      _signalAlphabetReady();
+    } catch (e) {
+      console.error("Alphabet build failed", e);
+    }
+  });
 
-let suppress = false;
-let initDone = false;
+  window.encrypt = async (text, key) => {
+    if (text === "") return "";
+    return await compressAndEncode(text, key);
+  };
 
-// Build charset (safe when UI elements are absent)
-let _initTimer = null;
-_initTimer = setTimeout(async () => {
-  if (loadingSpan) loadingSpan.textContent = "building alphabet — this can take 0.5–2s depending on CPU";
-  await new Promise(r => setTimeout(r, 50));
-  BLOCK_CHARS = buildBlockChars();
-  if (loadingSpan) loadingSpan.textContent = "alphabet ready";
-  initDone = true;
-  if (loadingSpan) setTimeout(()=>loadingSpan.remove(), 800);
-  try { if (inputEl && inputEl.value) debouncedEncode(); } catch (e) {}
-}, 10);
-
-function debounce(fn, ms = 220) {
-  let t;
-  return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); };
+  window.decrypt = async (str, key) => {
+    if (str === "") return "";
+    return await decodeAndDecompress(str, key);
+  };
 }
-
-async function doEncodeUI() {
-  if (!initDone) { statsEl.textContent = "Still initializing alphabet — wait a moment."; return; }
-  if (suppress) return;
-  suppress = true;
-  try {
-    statsEl.textContent = "Encoding (mining dict + huffman + compress) ...";
-    const key = keyEl.value || "";
-    const out = await compressAndEncode(inputEl.value, key);
-    outputEl.value = out;
-    const o = inputEl.value.length;
-    const e = out.length;
-    const pct = o ? Math.round((1 - (e / o)) * 100) : 0;
-    statsEl.textContent = `Original ${o} chars → Encoded ${e} chars · approx ${pct}% smaller`;
-  } catch (err) {
-    statsEl.innerHTML = '<span class="err">Encode error: ' + (err && err.message ? err.message : String(err)) + '</span>';
-    console.error(err);
-  } finally { suppress = false; }
-}
-
-async function doDecodeUI() {
-  if (!initDone) { statsEl.textContent = "Still initializing alphabet — wait a moment."; return; }
-  if (suppress) return;
-  suppress = true;
-  try {
-    statsEl.textContent = "Decoding ...";
-    const key = keyEl.value || "";
-    const out = await decodeAndDecompress(outputEl.value, key);
-    inputEl.value = out;
-    statsEl.textContent = `Decoded length: ${out.length} chars`;
-  } catch (err) {
-    statsEl.innerHTML = '<span class="err">Decode error: ' + (err && err.message ? err.message : String(err)) + '</span>';
-    console.error(err);
-  } finally { suppress = false; }
-}
-
-const debouncedEncode = debounce(doEncodeUI, 380);
-const debouncedDecode = debounce(doDecodeUI, 380);
-
-// Named handlers so they can be removed by cleanup
-const _inputHandler = () => debouncedEncode();
-const _outputHandler = () => debouncedDecode();
-const _keyHandler = () => { debouncedEncode(); debouncedDecode(); };
-const _encBtnHandler = (e) => { doEncodeUI(); };
-const _decBtnHandler = (e) => { doDecodeUI(); };
-const _windowLoadHandler = () => {
-  try {
-    if (outputEl && outputEl.value) debouncedDecode();
-    else if (inputEl && inputEl.value) debouncedEncode();
-  } catch (e) {}
-};
-
-if (inputEl) inputEl.addEventListener("input", _inputHandler);
-if (outputEl) outputEl.addEventListener("input", _outputHandler);
-if (keyEl) keyEl.addEventListener("input", _keyHandler);
-if (encBtn) encBtn.addEventListener("click", _encBtnHandler);
-if (decBtn) decBtn.addEventListener("click", _decBtnHandler);
-
-window.addEventListener("load", _windowLoadHandler);
-// Expose programmatic API compatible with v5/kolbe manager
-window.encrypt = async (text, key) => {
-  if (text == "") return "";
-  return await compressAndEncode(text, key);
-};
-
-window.decrypt = async (str, key) => {
-  if (str == "") return "";
-  return await decodeAndDecompress(str, key);
-};
-
-// cleanup hook used by manager when unloading versions
-window.cleanup = async () => {
-  try {
-    if (inputEl) inputEl.removeEventListener("input", _inputHandler);
-    if (outputEl) outputEl.removeEventListener("input", _outputHandler);
-    if (keyEl) keyEl.removeEventListener("input", _keyHandler);
-    if (encBtn) encBtn.removeEventListener("click", _encBtnHandler);
-    if (decBtn) decBtn.removeEventListener("click", _decBtnHandler);
-    window.removeEventListener("load", _windowLoadHandler);
-    if (_initTimer) clearTimeout(_initTimer);
-  } catch (e) {
-    console.warn('cleanup failed', e);
-  }
-};
-
-})();
+export { compressAndEncode, decodeAndDecompress, buildBlockChars, getKeyedChars, alphabetReady };
