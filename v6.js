@@ -506,16 +506,14 @@ function xorBytesWithKey(u8, keyStr) {
   return out;
 }
 
-if (typeof window !== "undefined") {
-  window.addEventListener("load", () => {
-    try {
-      buildBlockChars();
-      _signalAlphabetReady();
-    } catch (e) {
-      console.error("Alphabet build failed", e);
-    }
-  });
+try {
+  buildBlockChars();
+  _signalAlphabetReady();
+} catch (e) {
+  console.error("Alphabet build failed", e);
+}
 
+if (typeof window !== "undefined") {
   window.encrypt = async (text, key) => {
     if (text === "") return "";
     return await compressAndEncode(text, key);
